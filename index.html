@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScholarAI - Scholarship Application Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://js.stripe.com/v3/"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        :root {
+            --primary: #4F46E5;
+            --primary-dark: #4338CA;
+            --secondary: #7C3AED;
+            --accent: #8B5CF6;
+            --text: #1F2937;
+            --text-light: #6B7280;
+            --background: #F9FAFB;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            color: white;
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Floating Circles Animation */
+        .floating-circles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .circle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 50%;
+            animation: float 15s infinite;
+        }
+
+        .circle:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .circle:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            top: 60%;
+            right: 15%;
+            animation-delay: -5s;
+        }
+
+        .circle:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            top: 30%;
+            right: 30%;
+            animation-delay: -2s;
+        }
+
+        .circle:nth-child(4) {
+            width: 100px;
+            height: 100px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: -7s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(50px, 50px) rotate(90deg); }
+            50% { transform: translate(0, 100px) rotate(180deg); }
+            75% { transform: translate(-50px, 50px) rotate(270deg); }
+        }
+
+        /* Navigation */
+        .nav {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1.25rem 2rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-logo {
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-links a.nav-link {
+            color: white;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a.nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav-links .auth-button {
+            background: white;
+            color: var(--primary);
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0.6rem 1.5rem;
+            border-radius: 30px;
+            transition: all 0.3s;
+            margin-left: 0.5rem;
+        }
+
+        .nav-links .auth-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .dashboard-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.2s ease;
+            position: relative;
+            margin: 0;
+            white-space: nowrap;
+            outline: none;
+        }
+
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .tab-button:focus-visible {
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+            z-index: 1;
+        }
+
+        .tab-button.active {
+            color: white;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: white;
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* Focus styles for keyboard navigation */
+        .tab-button:focus:not(:focus-visible) {
+            outline: none;
+        }
+        
+        .tab-button[aria-selected="true"] {
+            color: white;
+            font-weight: 600;
+        }
+        
+        .tab-button[aria-selected="true"]::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: white;
+            border-radius: 3px 3px 0 0;
+        }
+
+        .dashboard-tab {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            padding: 1.5rem 0;
+        }
+
+        .dashboard-tab.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+            margin-right: 0.5em;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive styles for dashboard tabs */
+        @media (max-width: 768px) {
+            .dashboard-tabs {
+                overflow-x: auto;
+                padding-bottom: 0;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                margin-left: -1rem;
+                margin-right: -1rem;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
+            .dashboard-tabs::after {
+                content: '';
+                flex: 0 0 1rem;
+            }
+            
+            .dashboard-tabs::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .tab-button {
+                padding: 0.6rem 1rem;
+                font-size: 0.95rem;
+                flex-shrink: 0;
+            }
+            
+            .dashboard-content {
+                margin-left: -1rem;
+                margin-right: -1rem;
+                padding: 1rem;
+            }
+        }
+
+        .nav-links button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-links button::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: white;
+            transition: all 0.3s;
+            transform: translateX(-50%);
+        }
+
+        .nav-links button:hover::after {
+            width: 80%;
+        }
+
+        #authButton {
+            background: white;
+            color: var(--primary);
+            padding: 1rem 2rem;
+            border-radius: 100px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        #authButton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #authButton.signout {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+        }
+        /* Main Content */
+main {
+    padding: 7rem 2rem 4rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    min-height: calc(100vh - 4rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.section {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    min-height: 70vh;
+    padding: 2rem 0;
+}
+
+.section.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Ensure the hero section takes full viewport height */
+#hero {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: calc(100vh - 8rem);
+    padding: 4rem 0;
+}
+
+/* Add some spacing between sections */
+#features, #how-it-works, #pricing, #signup, #login {
+    padding: 5rem 0;
+}
+
+/* Hero Section */
+#hero {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+#hero h1 {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+    background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+#hero p {
+    font-size: 1.5rem;
+    margin-bottom: 2.5rem;
+    color: rgba(255, 255, 255, 0.9);
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Buttons */
+.cta-button {
+    background: white;
+    color: var(--primary);
+    border: none;
+    padding: 1rem 2.5rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cta-button.secondary {
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+    margin-left: 1rem;
+}
+
+/* Forms */
+.auth-form {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 2.5rem;
+    max-width: 500px;
+    margin: 3rem auto;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: white;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: white;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Dashboard */
+.dashboard {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 2rem;
+    min-height: calc(100vh - 8rem);
+}
+
+.sidebar {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+}
+
+.dashboard-content {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 2rem;
+    backdrop-filter: blur(10px);
+}
+
+/* Cards */
+.card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .nav-links {
+        display: none;
+    }
+    
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
+    
+    #hero h1 {
+        font-size: 2.5rem;
+    }
+    
+    #hero p {
+        font-size: 1.2rem;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Utility Classes */
+.text-center { text-align: center; }
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mt-4 { margin-top: 2rem; }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+.mb-4 { margin-bottom: 2rem; }
+</style>
+</head>
+<body>
+    <!-- Floating Circles -->
+    <div class="floating-circles" id="floatingCircles">
+        <!-- Circles will be added by JavaScript -->
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-logo">ScholarAI</div>
+        <div class="nav-links">
+            <a href="#" class="nav-link" data-section="features">Features</a>
+            <a href="#" class="nav-link" data-section="how-it-works">How It Works</a>
+            <a href="#" class="nav-link" data-section="pricing">Pricing</a>
+            <a href="#" class="nav-link" data-section="dashboard" style="display: none;">Dashboard</a>
+            <button id="authButton" class="auth-button">Sign In</button>
+        </div>
+    </nav>
+
+    <!-- Main Content Sections -->
+    <main>
+        <!-- Hero Section -->
+        <section id="hero" class="section active">
+            <h1>Transform Your Scholarship Journey</h1>
+            <p>Let AI help you find and apply for scholarships that match your profile</p>
+            <button class="cta-button" onclick="showSection('signup')">Get Started</button>
+        </section>
+
+        <!-- More sections will be added here -->
+         <!-- Features Section -->
+<section id="features" class="section">
+    <h2 class="text-center mb-4">Powerful Features</h2>
+    <div class="features-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 3rem;">
+        <div class="card">
+            <h3>Smart Matching</h3>
+            <p>Our AI matches you with scholarships that fit your unique profile and qualifications.</p>
+        </div>
+        <div class="card">
+            <h3>Auto-Apply</h3>
+            <p>Automatically apply to multiple scholarships with just one click.</p>
+        </div>
+        <div class="card">
+            <h3>Progress Tracking</h3>
+            <p>Track your scholarship applications and deadlines in one place.</p>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section id="how-it-works" class="section">
+    <h2 class="text-center mb-4">How It Works</h2>
+    <div class="steps" style="max-width: 800px; margin: 0 auto;">
+        <div class="step" style="display: flex; align-items: flex-start; margin-bottom: 2rem;">
+            <div class="step-number" style="background: white; color: var(--primary); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1rem; flex-shrink: 0;">1</div>
+            <div>
+                <h3>Create Your Profile</h3>
+                <p>Tell us about your academic achievements, extracurriculars, and background.</p>
+            </div>
+        </div>
+        <div class="step" style="display: flex; align-items: flex-start; margin-bottom: 2rem;">
+            <div class="step-number" style="background: white; color: var(--primary); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1rem; flex-shrink: 0;">2</div>
+            <div>
+                <h3>Get Matched</h3>
+                <p>Our AI will find scholarships that match your profile.</p>
+            </div>
+        </div>
+        <div class="step" style="display: flex; align-items: flex-start;">
+            <div class="step-number" style="background: white; color: var(--primary); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1rem; flex-shrink: 0;">3</div>
+            <div>
+                <h3>Apply & Win</h3>
+                <p>Apply with a single click and track your applications.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section id="pricing" class="section">
+    <h2 class="text-center mb-4">Simple, Transparent Pricing</h2>
+    <div class="pricing-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 3rem;">
+        <div class="card" style="text-align: center;">
+            <h3>Free</h3>
+            <p class="price" style="font-size: 2.5rem; font-weight: 900; margin: 1rem 0;">$0<span style="font-size: 1rem; font-weight: normal; opacity: 0.8;">/month</span></p>
+            <ul style="text-align: left; list-style: none; padding: 0; margin: 2rem 0;">
+                <li>✓ Access to basic scholarships</li>
+                <li>✓ 5 applications per month</li>
+                <li>✓ Basic matching</li>
+            </ul>
+            <button class="cta-button secondary" style="width: 100%;">Get Started</button>
+        </div>
+        <div class="card" style="text-align: center; border: 2px solid var(--accent); position: relative;">
+            <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; padding: 0.25rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600;">MOST POPULAR</div>
+            <h3>Premium</h3>
+            <p class="price" style="font-size: 2.5rem; font-weight: 900; margin: 1rem 0;">$9.99<span style="font-size: 1rem; font-weight: normal; opacity: 0.8;">/month</span></p>
+            <ul style="text-align: left; list-style: none; padding: 0; margin: 2rem 0;">
+                <li>✓ Unlimited applications</li>
+                <li>✓ Advanced AI matching</li>
+                <li>✓ Priority support</li>
+                <li>✓ Exclusive scholarships</li>
+            </ul>
+            <button class="cta-button" style="width: 100%;">Start Free Trial</button>
+        </div>
+    </div>
+</section>
+
+<!-- Sign Up / Sign In Forms -->
+<section id="signup" class="section">
+    <div class="auth-form">
+        <h2 class="text-center mb-4">Create Your Account</h2>
+        <form id="signupForm">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control" required minlength="8">
+            </div>
+            <button type="submit" class="cta-button" style="width: 100%;">Sign Up</button>
+            <p class="text-center mt-2">Already have an account? <a href="#" onclick="toggleLogin()" style="color: white; text-decoration: underline;">Sign In</a></p>
+        </form>
+    </div>
+</section>
+
+<section id="login" class="section">
+    <div class="auth-form">
+        <h2 class="text-center mb-4">Welcome Back</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" class="form-control" required>
+            </div>
+            <button type="submit" class="cta-button" style="width: 100%;">Sign In</button>
+            <p class="text-center mt-2">Don't have an account? <a href="#" onclick="toggleSignup()" style="color: white; text-decoration: underline;">Sign Up</a></p>
+        </form>
+    </div>
+</section>
+
+<!-- Dashboard (initially hidden) -->
+<section id="dashboard" class="section">
+    <div class="dashboard">
+        <div class="sidebar">
+            <h3>Menu</h3>
+            <ul style="list-style: none; padding: 0; margin-top: 1.5rem;">
+                <li style="margin-bottom: 1rem;"><a href="#" onclick="showDashboardTab('overview')" style="color: white; text-decoration: none;">Overview</a></li>
+                <li style="margin-bottom: 1rem;"><a href="#" onclick="showDashboardTab('scholarships')" style="color: white; text-decoration: none;">Scholarships</a></li>
+                <li style="margin-bottom: 1rem;"><a href="#" onclick="showDashboardTab('applications')" style="color: white; text-decoration: none;">My Applications</a></li>
+                <li><a href="#" onclick="showDashboardTab('profile')" style="color: white; text-decoration: none;">Profile</a></li>
+            </ul>
+        </div>
+        <div class="dashboard-content">
+            <div id="overview" class="dashboard-tab active">
+                <h2>Welcome back, <span id="userName">Student</span>!</h2>
+                <div class="stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+                    <div class="card">
+                        <h3>Scholarships Found</h3>
+                        <p class="stat-number" style="font-size: 2.5rem; font-weight: 900; margin: 0.5rem 0 0; color: var(--accent);">24</p>
+                    </div>
+                    <div class="card">
+                        <h3>Applications</h3>
+                        <p class="stat-number" style="font-size: 2.5rem; font-weight: 900; margin: 0.5rem 0 0; color: var(--accent);">8</p>
+                    </div>
+                    <div class="card">
+                        <h3>Awarded</h3>
+                        <p class="stat-number" style="font-size: 2.5rem; font-weight: 900; margin: 0.5rem 0 0; color: var(--accent);">$2,500</p>
+                    </div>
+                </div>
+                <h3>Recommended Scholarships</h3>
+                <div class="scholarship-list" style="margin-top: 1.5rem;">
+                    <!-- Scholarship items will be dynamically added here -->
+                </div>
+            </div>
+            <div id="scholarships" class="dashboard-tab" style="display: none;">
+                <h2>Available Scholarships</h2>
+                <div class="scholarship-filters" style="margin: 1.5rem 0; display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <input type="text" placeholder="Search scholarships..." class="form-control" style="flex: 1; min-width: 200px; max-width: 400px;">
+                    <select class="form-control" style="width: 200px;">
+                        <option>Filter by amount</option>
+                        <option>Under $1,000</option>
+                        <option>$1,000 - $5,000</option>
+                        <option>Over $5,000</option>
+                    </select>
+                </div>
+                <div class="scholarship-list">
+                    <!-- Scholarship items will be dynamically added here -->
+                </div>
+            </div>
+            <div id="applications" class="dashboard-tab" style="display: none;">
+                <h2>My Applications</h2>
+                <div class="application-list" style="margin-top: 1.5rem;">
+                    <!-- Application items will be dynamically added here -->
+                </div>
+            </div>
+            <div id="profile" class="dashboard-tab" style="display: none;">
+                <h2>My Profile</h2>
+                <form id="profileForm" style="margin-top: 1.5rem;">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" class="form-control" value="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" class="form-control" value="john@example.com" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Education Level</label>
+                        <select class="form-control">
+                            <option>High School</option>
+                            <option selected>Undergraduate</option>
+                            <option>Graduate</option>
+                            <option>PhD</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="cta-button">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+    </main>
+
+    <script>
+        // Initialize global variables
+let authButton, signupForm, loginForm, profileForm;
+let isAuthenticated = false;
+let currentUser = null;
+
+// Sample data
+const sampleScholarships = [
+    {
+        id: 1,
+        title: "Academic Excellence Scholarship",
+        amount: 5000,
+        deadline: "2023-12-31",
+        description: "Awarded to students with outstanding academic achievements.",
+        requirements: ["3.5+ GPA", "Full-time student", "Personal statement required"]
+    },
+    {
+        id: 2,
+        title: "STEM Innovation Award",
+        amount: 10000,
+        deadline: "2023-11-15",
+        description: "For students pursuing degrees in STEM fields with innovative projects.",
+        requirements: ["STEM major", "Project proposal", "3.0+ GPA"]
+    },
+    {
+        id: 3,
+        title: "Community Service Scholarship",
+        amount: 2500,
+        deadline: "2024-01-15",
+        description: "Awarded to students with a strong record of community service.",
+        requirements: ["100+ volunteer hours", "Two letters of recommendation", "Essay"]
+    }
+];
+
+// Initialize DOM elements after the page loads
+function initializeElements() {
+    authButton = document.getElementById('authButton');
+    signupForm = document.getElementById('signupForm');
+    loginForm = document.getElementById('loginForm');
+    profileForm = document.getElementById('profileForm');
+    
+    // Add navigation click handlers
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = link.getAttribute('data-section');
+            if (section) {
+                showSection(section);
+            }
+        });
+    });
+}
+
+// Update the authentication button based on login state
+function updateAuthButton() {
+    if (!authButton) return;
+    
+    const token = localStorage.getItem('token');
+    const userData = JSON.parse(localStorage.getItem('userData') || 'null');
+    
+    if (token && userData) {
+        isAuthenticated = true;
+        currentUser = userData;
+        authButton.textContent = 'Sign Out';
+        authButton.classList.add('signed-in');
+        
+        // Update user info in dashboard if visible
+        if (document.getElementById('dashboard').classList.contains('active')) {
+            showDashboardTab('overview');
+        }
+    } else {
+        isAuthenticated = false;
+        currentUser = null;
+        authButton.textContent = 'Sign In';
+        authButton.classList.remove('signed-in');
+    }
+    
+    // Update navigation based on auth state
+    updateNavigation();
+}
+
+// Update navigation based on authentication state
+function updateNavigation() {
+    const navLinks = document.querySelectorAll('.nav-link');
+    const dashboardLink = document.querySelector('[data-section="dashboard"]');
+    
+    navLinks.forEach(link => {
+        if (link.getAttribute('data-section') === 'dashboard') {
+            if (isAuthenticated) {
+                link.style.display = 'inline-block';
+            } else {
+                link.style.display = 'none';
+            }
+        } else {
+            link.style.display = 'inline-block';
+        }
+    });
+}
+
+// Make functions globally available
+window.showSection = showSection;
+window.toggleLogin = function() {
+    showSection('login');
+};
+window.toggleSignup = function() {
+    showSection('signup');
+};
+window.handleLogoClick = function() {
+    showSection('hero');
+};
+
+// Initialize the app when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize DOM elements
+    initializeElements();
+    
+    // Initialize floating circles
+    createFloatingCircles();
+    
+    // Set up event listeners
+    setupEventListeners();
+    
+    // Check authentication status
+    checkAuthStatus();
+    
+    // Load scholarships
+    loadScholarships();
+    
+    // Make sure the auth button is properly initialized
+    updateAuthButton();
+    
+    // Add click handler for logo
+    const logo = document.querySelector('.nav-logo');
+    if (logo) {
+        logo.addEventListener('click', handleLogoClick);
+        // Make logo focusable for keyboard navigation
+        logo.setAttribute('tabindex', '0');
+        logo.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleLogoClick();
+            }
+        });
+    }
+    
+    // Initialize tab keyboard navigation
+    setupTabNavigation();
+    
+    // Handle initial page load with hash
+    handleInitialHash();
+});
+
+// Handle initial page load with hash
+document.addEventListener('DOMContentLoaded', handleInitialHash);
+window.addEventListener('hashchange', handleInitialHash);
+
+function handleInitialHash() {
+    // If there's a hash in the URL, navigate to that section
+    const hash = window.location.hash;
+    
+    if (hash) {
+        // Check if it's a dashboard tab hash (e.g., #dashboard/overview)
+        const dashboardMatch = hash.match(/^#dashboard\/(\w+)/);
+        
+        if (dashboardMatch) {
+            const tabId = dashboardMatch[1];
+            // Make sure we're on the dashboard section
+            if (!document.getElementById('dashboard').classList.contains('active')) {
+                showSection('dashboard');
+            }
+            // Show the correct tab
+            showDashboardTab(tabId);
+            return;
+        }
+        
+        // Handle other section hashes (e.g., #features, #pricing, etc.)
+        const sectionId = hash.substring(1); // Remove the '#'
+        const section = document.getElementById(sectionId);
+        
+        if (section && section.classList.contains('section')) {
+            showSection(sectionId);
+            return;
+        }
+    }
+    
+    // Default to showing the hero section if no valid hash
+    if (!document.querySelector('.section.active')) {
+        showSection('hero');
+    }
+}
+
+// Set up keyboard navigation for tabs
+function setupTabNavigation() {
+    const tabList = document.querySelector('.dashboard-tabs');
+    if (!tabList) return;
+    
+    const tabs = Array.from(document.querySelectorAll('.tab-button'));
+    if (tabs.length === 0) return;
+    
+    tabList.setAttribute('role', 'tablist');
+    
+    tabs.forEach((tab, index) => {
+        const tabId = tab.getAttribute('data-tab');
+        const panelId = `${tabId}-tab`;
+        
+        tab.setAttribute('role', 'tab');
+        tab.setAttribute('aria-controls', panelId);
+        tab.setAttribute('id', `tab-${tabId}`);
+        
+        const panel = document.getElementById(panelId);
+        if (panel) {
+            panel.setAttribute('role', 'tabpanel');
+            panel.setAttribute('aria-labelledby', `tab-${tabId}`);
+        }
+        
+        // Handle keyboard navigation
+        tab.addEventListener('keydown', (e) => {
+            let nextTab = null;
+            
+            switch (e.key) {
+                case 'ArrowLeft':
+                    nextTab = tabs[index - 1] || tabs[tabs.length - 1];
+                    break;
+                case 'ArrowRight':
+                    nextTab = tabs[index + 1] || tabs[0];
+                    break;
+                case 'Home':
+                    e.preventDefault();
+                    nextTab = tabs[0];
+                    break;
+                case 'End':
+                    e.preventDefault();
+                    nextTab = tabs[tabs.length - 1];
+                    break;
+                default:
+                    return;
+            }
+            
+            if (nextTab) {
+                e.preventDefault();
+                nextTab.focus();
+                const tabId = nextTab.getAttribute('data-tab');
+                showDashboardTab(tabId);
+            }
+        });
+    });
+}
+        
+        // Create floating circles
+        function createFloatingCircles() {
+            const container = document.getElementById('floatingCircles');
+            if (!container) return;
+            
+            // Clear any existing circles
+            container.innerHTML = '';
+            
+            // Create circles
+            for (let i = 0; i < 10; i++) {
+                const circle = document.createElement('div');
+                circle.className = 'circle';
+                
+                // Random size between 100px and 300px
+                const size = Math.random() * 200 + 100;
+                
+                // Random position
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                
+                // Random animation duration between 15s and 30s
+                const duration = Math.random() * 15 + 15;
+                
+                // Apply styles
+                Object.assign(circle.style, {
+                    width: `${size}px`,
+                    height: `${size}px`,
+                    left: `${posX}%`,
+                    top: `${posY}%`,
+                    opacity: Math.random() * 0.1 + 0.05, // Between 0.05 and 0.15
+                    animation: `float ${duration}s infinite`,
+                    animationDelay: `${Math.random() * -20}s` // Start at different times
+                });
+                
+                container.appendChild(circle);
+            }
+        }
+
+// Event Listeners
+function setupEventListeners() {
+    // Form submissions
+    if (signupForm) {
+        signupForm.addEventListener('submit', handleSignup);
+    }
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+    if (profileForm) {
+        profileForm.addEventListener('submit', handleProfileUpdate);
+    }
+    
+    // Auth button
+    if (authButton) {
+        authButton.addEventListener('click', function(e) {
+            if (isAuthenticated) {
+                handleLogout();
+            } else {
+                showSection('login');
+            }
+        });
+    }
+}
+
+// Auth Functions
+function checkAuthStatus() {
+    const token = localStorage.getItem('token');
+    if (token) {
+        // In a real app, verify the token with the server
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        if (userData) {
+            isAuthenticated = true;
+            currentUser = userData;
+            updateAuthButton();
+            showSection('dashboard');
+        } else {
+            // Invalid user data, clear auth
+            localStorage.removeItem('token');
+            updateAuthButton();
+        }
+    } else {
+        updateAuthButton();
+    }
+}
+
+function handleSignup(e) {
+    e.preventDefault();
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    // In a real app, this would be an API call
+    const userData = { 
+        id: Date.now().toString(),
+        name, 
+        email, 
+        password,
+        applications: []
+    };
+    
+    localStorage.setItem('userData', JSON.stringify(userData));
+    localStorage.setItem('token', 'sample-jwt-token');
+    
+    isAuthenticated = true;
+    currentUser = userData;
+    
+    // Update UI and show success message
+    updateAuthButton();
+    showSection('dashboard');
+    showMessage('Account created successfully!', 'success');
+    
+    // Reset the form
+    if (signupForm) signupForm.reset();
+}
+
+function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+
+    // In a real app, this would be an API call
+    // For demo purposes, we'll create a user if one doesn't exist
+    let userData = JSON.parse(localStorage.getItem('userData'));
+    
+    if (!userData) {
+        // Create a new user if none exists (for demo)
+        userData = { 
+            id: Date.now().toString(),
+            name: email.split('@')[0],
+            email,
+            password,
+            applications: []
+        };
+        localStorage.setItem('userData', JSON.stringify(userData));
+    }
+    
+    localStorage.setItem('token', 'sample-jwt-token');
+    
+    isAuthenticated = true;
+    currentUser = userData;
+    
+    // Update UI and show success message
+    updateAuthButton();
+    showSection('dashboard');
+    showMessage('Logged in successfully!', 'success');
+    
+    // Reset the form
+    if (loginForm) loginForm.reset();
+}
+
+function handleLogout() {
+    // Clear authentication data
+    localStorage.removeItem('token');
+    localStorage.removeItem('userData');
+    isAuthenticated = false;
+    currentUser = null;
+    
+    // Update the UI
+    updateAuthButton();
+    
+    // Show login form if on dashboard, otherwise stay on current page
+    const currentSection = document.querySelector('.section.active');
+    if (currentSection && currentSection.id === 'dashboard') {
+        showSection('login');
+    }
+    
+    showMessage('You have been successfully logged out.', 'success');
+    
+    // Reset forms
+    if (signupForm) signupForm.reset();
+    if (loginForm) loginForm.reset();
+    if (profileForm) profileForm.reset();
+}
+
+function handleProfileUpdate(e) {
+    e.preventDefault();
+    // In a real app, this would update the user's profile via API
+    showMessage('Profile updated successfully!', 'success');
+}
+
+// UI Functions
+function updateUIForAuth(isLoggedIn) {
+    const authBtn = document.getElementById('authButton');
+    if (isLoggedIn) {
+        authBtn.textContent = 'Sign Out';
+        authBtn.classList.add('signout');
+        authBtn.setAttribute('onclick', 'handleLogout()');
+        
+        // Update user info in dashboard
+        if (currentUser && document.getElementById('userName')) {
+            document.getElementById('userName').textContent = currentUser.name;
+        }
+    } else {
+        authBtn.textContent = 'Sign In';
+        authBtn.classList.remove('signout');
+        authBtn.setAttribute('onclick', 'showSection("login")');
+    }
+}
+
+function showSection(sectionId) {
+    // Hide all sections with fade out
+    document.querySelectorAll('.section').forEach(section => {
+        if (section.classList.contains('active')) {
+            section.style.opacity = '0';
+            setTimeout(() => {
+                section.style.display = 'none';
+                section.classList.remove('active');
+            }, 200);
+        }
+    });
+    
+    // Show the selected section with fade in
+    const section = document.getElementById(sectionId);
+    if (section) {
+        section.style.display = 'block';
+        // Force reflow
+        void section.offsetWidth;
+        section.style.opacity = '1';
+        section.classList.add('active');
+        
+        // Update active nav link
+        document.querySelectorAll('.nav-link').forEach(link => {
+            if (link.getAttribute('data-section') === sectionId) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+        
+        // If showing dashboard, make sure overview tab is shown by default
+        if (sectionId === 'dashboard') {
+            showDashboardTab('overview');
+        }
+    }
+}
+
+function showDashboardTab(tabId) {
+    // If no tabId is provided, use the first available tab
+    if (!tabId) {
+        const firstTab = document.querySelector('.tab-button');
+        if (firstTab) {
+            tabId = firstTab.getAttribute('data-tab');
+        } else {
+            return; // No tabs available
+        }
+    }
+    
+    // Hide all tab contents and remove active class from tab buttons
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.style.display = 'none';
+        tab.setAttribute('aria-hidden', 'true');
+    });
+    
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+        button.setAttribute('aria-selected', 'false');
+        button.setAttribute('tabindex', '-1');
+        button.disabled = false;
+    });
+    
+    // Show the selected tab content and mark button as active
+    const tabContent = document.getElementById(`${tabId}-tab`);
+    const tabButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+    
+    if (!tabContent || !tabButton) {
+        console.error(`Tab content or button not found for tab: ${tabId}`);
+        return;
+    }
+    
+    // Disable the button during tab switch to prevent rapid clicks
+    tabButton.disabled = true;
+    
+    // Show loading state
+    const originalButtonText = tabButton.textContent;
+    tabButton.innerHTML = '<span class="loading-spinner"></span> Loading...';
+    
+    // Use a small timeout to allow the UI to update
+    setTimeout(() => {
+        // Show the tab content
+        tabContent.style.display = 'block';
+        tabContent.style.opacity = '1';
+        tabContent.setAttribute('aria-hidden', 'false');
+        
+        // Update button states
+        tabButton.classList.add('active');
+        tabButton.setAttribute('aria-selected', 'true');
+        tabButton.setAttribute('tabindex', '0');
+        tabButton.innerHTML = originalButtonText; // Restore original text
+        tabButton.disabled = false;
+        
+        // Focus the tab button but don't scroll the page
+        setTimeout(() => {
+            tabButton.focus({ preventScroll: true });
+        }, 0);
+        
+        // Update the URL hash without adding to browser history
+        if (history.pushState) {
+            const newUrl = `${window.location.pathname}#dashboard/${tabId}`;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+        } else {
+            window.location.hash = `dashboard/${tabId}`;
+        }
+        
+        // Load tab-specific content
+        loadTabContent(tabId);
+        
+        // Dispatch a custom event that the tab has changed
+        const event = new CustomEvent('tabChanged', { detail: { tabId } });
+        document.dispatchEvent(event);
+        
+    }, 150); // Small delay for better perceived performance
+}
+
+// Load content specific to each tab
+function loadTabContent(tabId) {
+    switch (tabId) {
+        case 'scholarships':
+            loadScholarships();
+            break;
+        case 'profile':
+            if (currentUser) {
+                document.getElementById('profileName').value = currentUser.name || '';
+                document.getElementById('profileEmail').value = currentUser.email || '';
+            }
+            break;
+        case 'applications':
+            // Load applications if needed
+            break;
+        case 'overview':
+        default:
+            // Default tab content is already loaded
+            break;
+    }
+}
+
+function toggleLogin() {
+    showSection('login');
+}
+
+function toggleSignup() {
+    showSection('signup');
+}
+
+// Scholarship Functions
+function loadScholarships() {
+    const scholarshipList = document.querySelector('.scholarship-list');
+    if (!scholarshipList) return;
+
+    scholarshipList.innerHTML = sampleScholarships.map(scholarship => `
+        <div class="card" style="margin-bottom: 1rem;">
+            <h3>${scholarship.title}</h3>
+            <p>Amount: $${scholarship.amount.toLocaleString()}</p>
+            <p>Deadline: ${new Date(scholarship.deadline).toLocaleDateString()}</p>
+            <p>${scholarship.description}</p>
+            <div style="margin-top: 1rem;">
+                <button class="cta-button" onclick="applyForScholarship(${scholarship.id})">Apply Now</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function applyForScholarship(scholarshipId) {
+    if (!isAuthenticated) {
+        showSection('signup');
+        showMessage('Please sign up or log in to apply for scholarships.', 'info');
+        return;
+    }
+    
+    // In a real app, this would submit an application
+    showMessage('Application submitted successfully!', 'success');
+}
+
+// Utility Functions
+function showMessage(message, type = 'info') {
+    // Create message element if it doesn't exist
+    let messageEl = document.getElementById('message');
+    if (!messageEl) {
+        messageEl = document.createElement('div');
+        messageEl.id = 'message';
+        document.body.appendChild(messageEl);
+    }
+    
+    // Set message content and style
+    messageEl.textContent = message;
+    messageEl.className = `message message-${type}`;
+    messageEl.style.display = 'block';
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        messageEl.style.display = 'none';
+    }, 5000);
+}
+
+// Add message styles to head
+const style = document.createElement('style');
+style.textContent = `
+    .message {
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .message-success {
+        background-color: #10B981;
+    }
+    
+    .message-error {
+        background-color: #EF4444;
+    }
+    
+    .message-info {
+        background-color: #3B82F6;
+    }
+    
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+`;
+document.head.appendChild(style);
+    </script>
+</body>
+</html>

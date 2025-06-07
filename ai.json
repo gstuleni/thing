@@ -1,0 +1,89 @@
+{
+  "imports": [
+    "json",
+    "time", 
+    "re",
+    "Dict, List, Optional, Any from typing",
+    "webdriver from selenium"
+  ],
+  "selenium_imports": [
+    "webdriver.common.by.By",
+    "webdriver.support.ui.WebDriverWait",
+    "webdriver.support.ui.Select", 
+    "webdriver.support.expected_conditions as EC",
+    "webdriver.chrome.options.Options",
+    "common.exceptions.TimeoutException",
+    "common.exceptions.NoSuchElementException"
+  ],
+  "other_imports": [
+    "dataclasses.dataclass",
+    "openai",
+    "bs4.BeautifulSoup"
+  ],
+  "config": {
+    "selenium": {
+      "browser": "chrome",
+      "headless": false,
+      "timeout": 10,
+      "stealth_mode": true,
+      "browser_options": [
+        "--disable-blink-features=AutomationControlled",
+        "--disable-dev-shm-usage",
+        "--no-sandbox",
+        "--disable-gpu"
+      ]
+    },
+    "form_fields": {
+      "personal": {
+        "first_name": ["first_name", "firstname", "fname", "given_name", "name_first"],
+        "last_name": ["last_name", "lastname", "lname", "family_name", "name_last"],
+        "full_name": ["full_name", "name", "student_name", "applicant_name", "your_name"],
+        "date_of_birth": ["dob", "date_of_birth", "birth_date", "birthday"]
+      },
+      "contact": {
+        "email": ["email", "email_address", "e_mail", "contact_email", "student_email"],
+        "phone": ["phone", "telephone", "phone_number", "contact_number", "mobile"],
+        "address": ["address", "street_address", "home_address", "mailing_address"],
+        "city": ["city", "town", "municipality"],
+        "state": ["state", "province", "region"],
+        "zip_code": ["zip", "postal_code", "zip_code", "postcode"]
+      },
+      "academic": {
+        "gpa": ["gpa", "grade_point_average", "academic_average", "cgpa"],
+        "major": ["major", "field_of_study", "degree_program", "course_of_study"],
+        "school": ["school", "university", "college", "institution", "school_name"],
+        "graduation_year": ["graduation_year", "grad_year", "expected_graduation"]
+      },
+      "essays": {
+        "personal_statement": ["essay", "personal_statement", "statement", "description", "why_deserving"]
+      }
+    },
+    "ai": {
+      "model": "gpt-4",
+      "temperature": 0.1,
+      "max_tokens": 4000
+    },
+    "delays": {
+      "page_load": 2,
+      "field_fill": 0.5,
+      "between_actions": 1
+    },
+    "selectors": {
+      "submit_buttons": [
+        "input[type='submit']",
+        "button[type='submit']",
+        "button:contains('Submit')",
+        "button:contains('Apply')",
+        "input[value*='Submit']",
+        "input[value*='Apply']"
+      ]
+    }
+  },
+  "user_data_fields": {
+    "personal_info": "Dict[str, str]",
+    "academic_info": "Dict[str, str]",
+    "contact_info": "Dict[str, str]",
+    "essays": "Dict[str, str]",
+    "files": "Dict[str, str]"
+  }
+}

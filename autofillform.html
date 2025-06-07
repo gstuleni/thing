@@ -1,0 +1,3365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScholarAI - Scholarship Application Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://js.stripe.com/v3/"></script>
+    
+    <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        /* Center all text by default */
+        body {
+            text-align: center;
+        }
+
+        /* Reset for specific elements that shouldn't be centered */
+        input, textarea, button, select {
+            text-align: left;
+        }
+
+        /* Typography */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.8;
+            color: #333;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            line-height: 1.3;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            color: #4a4a4a;
+        }
+
+        :root {
+            --primary: #4F46E5;
+            --primary-dark: #4338CA;
+            --secondary: #7C3AED;
+            --accent: #8B5CF6;
+            --text: #1F2937;
+            --text-light: #6B7280;
+            --background: #F9FAFB;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            color: white;
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Hide sections by default */
+        .section {
+            display: none;
+        }
+
+        /* Show active section */
+        .section.active {
+            display: flex !important;
+        }
+
+        /* Floating Circles Animation */
+        .floating-circles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            animation: float 15s infinite;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .circle:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .circle:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            top: 60%;
+            right: 15%;
+            animation-delay: -5s;
+        }
+
+        .circle:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            top: 30%;
+            right: 30%;
+            animation-delay: -2s;
+        }
+
+        .circle:nth-child(4) {
+            width: 100px;
+            height: 100px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: -7s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            25% {
+                transform: translate(50px, 50px) rotate(90deg);
+            }
+            50% {
+                transform: translate(0, 100px) rotate(180deg);
+            }
+            75% {
+                transform: translate(-50px, 50px) rotate(270deg);
+            }
+        }
+
+        /* Navigation */
+        .nav {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem 2rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            max-width: 1400px;
+            margin: 0 auto;
+            border-radius: 0 0 20px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: none;
+        }
+
+        .nav-logo {
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            justify-content: center;
+        }
+
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav-links button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-links button::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: white;
+            transition: all 0.3s;
+            transform: translateX(-50%);
+        }
+
+        .nav-links button:hover::after {
+            width: 80%;
+        }
+
+        #authButton {
+            background: white;
+            color: var(--primary);
+            padding: 1rem 2rem;
+            border-radius: 100px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        #authButton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #authButton.signout {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+        }
+
+        /* Sections */
+        .section {
+            padding: 8rem 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .section > * {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 4rem;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            position: relative;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Features Section */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 3rem 2.5rem;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            font-size: 2.5rem;
+            color: white;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1);
+            background: linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0.15));
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .feature-card p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+        }
+
+        /* How It Works Section */
+        .steps-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .step:last-child {
+            margin-bottom: 0;
+        }
+
+        .step-number {
+            background: white;
+            color: var(--primary);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1.5rem;
+            flex-shrink: 0;
+            font-size: 1.25rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 25px;
+            top: 50px;
+            height: calc(100% - 20px);
+            width: 2px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .step-content {
+            padding-top: 0.5rem;
+        }
+
+        .step h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: white;
+        }
+
+        .step p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+        }
+
+        /* Pricing Section */
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 3rem auto 0;
+        }
+
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3.5rem 2.5rem;
+            text-align: center;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .pricing-card.featured {
+            border: 2px solid var(--accent);
+            transform: scale(1.03);
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .pricing-card.featured:hover {
+            transform: scale(1.03) translateY(-5px);
+        }
+
+        .badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: white;
+            padding: 0.25rem 1.5rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .pricing-card h3 {
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+
+        .price {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: white;
+            margin: 1.5rem 0;
+        }
+
+        .price span {
+            font-size: 1rem;
+            font-weight: normal;
+            opacity: 0.8;
+            margin-left: 0.25rem;
+        }
+
+        .features-list {
+            text-align: left;
+            list-style: none;
+            padding: 0;
+            margin: 2rem 0;
+        }
+
+        .features-list li {
+            padding: 0.5rem 0;
+            color: rgba(255, 255, 255, 0.9);
+            position: relative;
+            padding-left: 1.75rem;
+        }
+
+        .features-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            width: auto;
+            min-width: 200px;
+            margin: 0.5rem;
+            text-decoration: none;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .auth-container {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        section h2 {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.9) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .section-subtitle {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.95);
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto 4rem;
+            line-height: 1.6;
+        }
+
+        /* Form Styles */
+        .form-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 600px;
+            margin: 0 auto;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .form-container h3 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .form-progress {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .form-progress::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-50%);
+            z-index: -1;
+        }
+
+        .progress-step {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .progress-step.active {
+            background: white;
+            color: var(--primary);
+        }
+
+        .progress-step.completed {
+            background: #4ADE80;
+            color: white;
+        }
+
+        .form-step {
+            display: none;
+        }
+
+        .form-step.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .form-group {
+            margin-bottom: 1.8rem;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: #444;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+
+        .form-navigation button {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-prev {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-next,
+        .btn-submit {
+            background: white;
+            color: var(--primary);
+        }
+
+        .btn-next:hover,
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Dashboard Styles */
+        .dashboard-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 1rem;
+        }
+
+        .tab-btn {
+            padding: 0.8rem 1.5rem;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            color: white;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1rem;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #4F46E5;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+        }
+
+        .filter-btn {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-dropdown {
+            position: relative;
+        }
+
+        .filter-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            min-width: 200px;
+            display: none;
+            z-index: 10;
+        }
+
+        .filter-menu.active {
+            display: block;
+        }
+
+        .filter-option {
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .scholarship-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            gap: 2rem;
+            transition: all 0.3s;
+        }
+
+        .scholarship-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .auto-apply-btn {
+            padding: 0.8rem 2rem;
+            background: #4F46E5;
+            border: none;
+            border-radius: 100px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: center;
+        }
+
+        .auto-apply-btn:hover {
+            background: #4338CA;
+            transform: translateY(-2px);
+        }
+
+        .auto-apply-btn.applying {
+            background: #FCD34D;
+            color: #1F2937;
+            cursor: not-allowed;
+        }
+
+        /* Payment Modal */
+        .payment-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .payment-modal.active {
+            display: flex;
+        }
+
+        .payment-content {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 90%;
+            color: var(--text);
+        }
+
+        .payment-content h3 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--primary);
+        }
+
+        #card-element {
+            padding: 1rem;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .payment-btn {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .payment-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            width: 40px;
+            height: 40px;
+            background: #F3F4F6;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Additional styles from original code... */
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 600px;
+        }
+
+        .pricing-btn {
+            font-size: 1.2rem;
+            font-weight: 700;
+            padding: 1.2rem 2rem;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            text-decoration: none;
+            letter-spacing: 0.5px;
+            width: 100%;
+            margin-top: auto;
+            border: none;
+        }
+
+        /* Form tab styles */
+        .form-answers-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .form-answers-container h3 {
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+        }
+
+        .saved-answer {
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+
+        .saved-answer label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .saved-answer input,
+        .saved-answer textarea,
+        .saved-answer select {
+            width: 100%;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .save-form-btn {
+            padding: 1rem 2rem;
+            background: #4F46E5;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Success message */
+        .success-message {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: #4ADE80;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        /* Analytics styles */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .analytics-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+
+        .analytics-card h4 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .analytics-value {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .analytics-label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Application item styles */
+        .application-item {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .application-item:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .app-status {
+            padding: 0.5rem 1rem;
+            border-radius: 100px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .app-status.pending {
+            background: rgba(234, 179, 8, 0.2);
+            color: #FCD34D;
+        }
+
+        .app-status.approved {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ADE80;
+        }
+
+        .app-status.rejected {
+            background: rgba(239, 68, 68, 0.2);
+            color: #EF4444;
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Circles -->
+    <div class="floating-circles">
+        <div class="circle"></div>
+        <div class="circle"></div>
+        <div class="circle"></div>
+        <div class="circle"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <a href="#" class="nav-logo" onclick="handleLogoClick(); return false;">
+            <span>ScholarAI</span>
+        </a>
+        <div class="nav-links">
+            <a href="#" onclick="showSection('features'); return false;">Features</a>
+            <a href="#" onclick="showSection('how-it-works'); return false;">How It Works</a>
+            <a href="#" onclick="showSection('pricing'); return false;">Pricing</a>
+            <div id="authButtons">
+                <button id="loginBtn" class="btn" onclick="showAuth('login')">Sign In</button>
+                <button id="signupBtn" class="btn btn-primary" onclick="showAuth('signup')">Sign Up</button>
+                <button id="profileBtn" class="btn" style="display: none;" onclick="showSection('profile')">My Profile</button>
+                <button id="logoutBtn" class="btn" style="display: none;" onclick="handleLogout()">Sign Out</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Success Message -->
+    <div id="successMessage" class="success-message"></div>
+
+    <!-- Landing Section -->
+    <section id="hero" class="section active">
+        <h2>Transform Your Scholarship Journey</h2>
+        <p class="section-subtitle">Let AI streamline your application process and increase your chances of success</p>
+        <a href="#" onclick="showAuth('signup'); return false;" class="start-journey-btn">Start Your Journey</a>
+    </section>
+
+    <!-- Auth Section -->
+    <section id="auth" class="section">
+        <h2>Welcome to ScholarAI</h2>
+        <p class="section-subtitle">Join our community of successful scholarship applicants</p>
+        
+        <div class="auth-container">
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchAuthTab('signin')">Sign In</button>
+                <button class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button>
+            </div>
+
+            <div class="auth-forms">
+                <!-- Sign In Form -->
+                <div class="auth-form-container active" id="signin-form">
+                    <div class="auth-box">
+                        <form class="auth-form" onsubmit="handleSignIn(event)">
+                            <div class="form-group">
+                                <label for="signin-email">Email</label>
+                                <input type="email" id="signin-email" placeholder="Enter your email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="signin-password">Password</label>
+                                <input type="password" id="signin-password" placeholder="Enter your password" required>
+                            </div>
+                            <button type="submit" class="auth-btn signin">Sign In</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Sign Up Form -->
+                <div class="auth-form-container" id="signup-form">
+                    <div class="auth-box">
+                        <form class="auth-form" onsubmit="handleSignUp(event)">
+                            <div class="form-group">
+                                <label for="signup-name">Full Name</label>
+                                <input type="text" id="signup-name" placeholder="Enter your full name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-email">Email</label>
+                                <input type="email" id="signup-email" placeholder="Enter your email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-password">Password</label>
+                                <input type="password" id="signup-password" placeholder="Create a password" required>
+                            </div>
+                            <button type="submit" class="auth-btn signup">Create Account</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="section">
+        <h2 class="section-title">Powerful Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3>Smart Matching</h3>
+                <p>Our AI matches you with scholarships that fit your unique profile and qualifications.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-magic"></i>
+                </div>
+                <h3>Auto-Apply</h3>
+                <p>Automatically apply to multiple scholarships with just one click.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Progress Tracking</h3>
+                <p>Track your scholarship applications and deadlines in one place.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="section">
+        <h2 class="section-title">How It Works</h2>
+        <div class="steps-container">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Create Your Profile</h3>
+                    <p>Tell us about your academic achievements, extracurriculars, and background.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Get Matched</h3>
+                    <p>Our AI will find scholarships that match your profile.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Apply & Win</h3>
+                    <p>Apply with a single click and track your applications.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="section">
+        <h2 class="section-title">Simple, Transparent Pricing</h2>
+        <div class="pricing-cards">
+            <div class="pricing-card">
+                <h3>Free</h3>
+                <div class="price">$0<span>/month</span></div>
+                <ul class="features-list">
+                    <li>✓ Access to basic scholarships</li>
+                    <li>✓ 5 applications per month</li>
+                    <li>✓ Basic matching</li>
+                </ul>
+                <button class="btn btn-outline">Get Started</button>
+            </div>
+            <div class="pricing-card featured">
+                <div class="badge">MOST POPULAR</div>
+                <h3>Premium</h3>
+                <div class="price">$9.99<span>/month</span></div>
+                <ul class="features-list">
+                    <li>✓ Unlimited applications</li>
+                    <li>✓ Advanced AI matching</li>
+                    <li>✓ Priority support</li>
+                    <li>✓ Exclusive scholarships</li>
+                </ul>
+                <button class="btn btn-primary">Start Free Trial</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scholarship Form Section (shown after signup) -->
+    <section id="scholarship-form" class="section">
+        <div class="form-container">
+            <h3>Complete Your Scholarship Profile</h3>
+            
+            <div class="form-progress">
+                <div class="progress-step active" data-step="1">1</div>
+                <div class="progress-step" data-step="2">2</div>
+                <div class="progress-step" data-step="3">3</div>
+                <div class="progress-step" data-step="4">4</div>
+            </div>
+
+            <form id="scholarshipProfileForm" onsubmit="handleFormSubmit(event)">
+                <!-- Step 1: Personal Information -->
+                <div class="form-step active" data-step="1">
+                    <h4>Personal Information</h4>
+                    <div class="form-group">
+                        <label for="dateOfBirth">Date of Birth</label>
+                        <input type="date" id="dateOfBirth" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" placeholder="(555) 123-4567" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <input type="text" id="address" placeholder="123 Main St" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="city">City</label>
+                        <input type="text" id="city" placeholder="Your City" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="state">State</label>
+                        <input type="text" id="state" placeholder="Your State" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="zipCode">ZIP Code</label>
+                        <input type="text" id="zipCode" placeholder="12345" required>
+                    </div>
+                </div>
+
+                <!-- Step 2: Academic Information -->
+                <div class="form-step" data-step="2">
+                    <h4>Academic Information</h4>
+                    <div class="form-group">
+                        <label for="school">Current School</label>
+                        <input type="text" id="school" placeholder="Your School Name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="gradeLevel">Grade Level / Year</label>
+                        <select id="gradeLevel" required>
+                            <option value="">Select Grade Level</option>
+                            <option value="freshman">Freshman</option>
+                            <option value="sophomore">Sophomore</option>
+                            <option value="junior">Junior</option>
+                            <option value="senior">Senior</option>
+                            <option value="graduate">Graduate Student</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="gpa">GPA</label>
+                        <input type="number" id="gpa" step="0.01" min="0" max="4.0" placeholder="3.50" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="major">Intended Major</label>
+                        <input type="text" id="major" placeholder="Computer Science" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="satScore">SAT Score (Optional)</label>
+                        <input type="number" id="satScore" placeholder="1400" min="400" max="1600">
+                    </div>
+                    <div class="form-group">
+                        <label for="actScore">ACT Score (Optional)</label>
+                        <input type="number" id="actScore" placeholder="32" min="1" max="36">
+                    </div>
+                </div>
+
+                <!-- Step 3: Extracurricular Activities -->
+                <div class="form-step" data-step="3">
+                    <h4>Extracurricular Activities & Achievements</h4>
+                    <div class="form-group">
+                        <label for="activities">List your extracurricular activities</label>
+                        <textarea id="activities" rows="4" placeholder="Student Council President, Debate Team Captain, Volunteer at Local Hospital..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="awards">Awards and Honors</label>
+                        <textarea id="awards" rows="4" placeholder="National Honor Society, Science Fair Winner, Academic Excellence Award..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="communityService">Community Service</label>
+                        <textarea id="communityService" rows="4" placeholder="Describe your community service experience..." required></textarea>
+                    </div>
+                </div>
+
+                <!-- Step 4: Essay Questions -->
+                <div class="form-step" data-step="4">
+                    <h4>Essay Questions</h4>
+                    <div class="form-group">
+                        <label for="careerGoals">What are your career goals? (250 words)</label>
+                        <textarea id="careerGoals" rows="6" placeholder="Describe your career aspirations..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="whyDeserving">Why do you deserve this scholarship? (250 words)</label>
+                        <textarea id="whyDeserving" rows="6" placeholder="Explain why you should receive this scholarship..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="challenges">Describe a challenge you've overcome (250 words)</label>
+                        <textarea id="challenges" rows="6" placeholder="Share a personal challenge and how you overcame it..." required></textarea>
+                    </div>
+                </div>
+
+                <!-- Navigation buttons -->
+                <div class="form-navigation">
+                    <button type="button" class="btn-prev" onclick="previousStep()" style="display: none;">Previous</button>
+                    <button type="button" class="btn-next" onclick="nextStep()">Next</button>
+                    <button type="submit" class="btn-submit" style="display: none;">Complete Profile</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Dashboard Section -->
+    <section id="dashboard" class="section">
+        <div class="dashboard-tabs">
+            <button class="tab-button active" data-tab="scholarships" onclick="switchTab('scholarships')">
+                Scholarships
+            </button>
+            <button class="tab-button" data-tab="applications" onclick="switchTab('applications')">
+                My Applications
+            </button>
+            <button class="tab-button" data-tab="analytics" onclick="switchTab('analytics')">
+                Analytics
+            </button>
+            <button class="tab-button" data-tab="profile" onclick="switchTab('profile')">
+                My Profile
+            </button>
+        </div>
+        <div class="dashboard-container">
+            <div id="dashboard-content">
+                <!-- Content will be loaded dynamically -->
+                <div class="loading-spinner"></div> Loading...
+            </div>
+            <div class="dashboard-header">
+                <div class="header-left">
+                    <h2>Welcome back, <span id="userName">User</span>!</h2>
+                    <p class="subtitle">Your AI is working hard to find new scholarship opportunities for you.</p>
+                </div>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('scholarships')">Available Scholarships</button>
+                <button class="tab-btn" onclick="switchTab('applications')">My Applications</button>
+                <button class="tab-btn" onclick="switchTab('analytics')">Analytics</button>
+                <button class="tab-btn" onclick="switchTab('form')">Form</button>
+            </div>
+
+            <!-- Scholarships Tab -->
+            <div id="scholarships-tab" class="tab-content active">
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Search scholarships..." onkeyup="searchScholarships()">
+                    <div class="filter-dropdown">
+                        <button class="filter-btn" onclick="toggleFilterMenu()">
+                            Filter <span class="arrow">▼</span>
+                        </button>
+                        <div id="filterMenu" class="filter-menu">
+                            <div class="filter-option" onclick="filterScholarships('all')">All Scholarships</div>
+                            <div class="filter-option" onclick="filterScholarships('high-match')">High Match (80%+)</div>
+                            <div class="filter-option" onclick="filterScholarships('deadline-soon')">Deadline Soon</div>
+                            <div class="filter-option" onclick="filterScholarships('high-amount')">$10,000+</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="scholarshipsList" class="scholarships-list">
+                    <!-- Scholarships will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Applications Tab -->
+            <div id="applications-tab" class="tab-content">
+                <h3>My Applications</h3>
+                <div id="applicationsList">
+                    <!-- Applications will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="analytics-tab" class="tab-content">
+                <h3>Your Performance Analytics</h3>
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h4>Total Applications</h4>
+                        <div class="analytics-value" id="totalApplications">0</div>
+                        <div class="analytics-label">Submitted</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h4>Success Rate</h4>
+                        <div class="analytics-value" id="successRate">0%</div>
+                        <div class="analytics-label">Approval Rate</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h4>Total Awarded</h4>
+                        <div class="analytics-value" id="totalAwarded">$0</div>
+                        <div class="analytics-label">In Scholarships</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h4>Time Saved</h4>
+                        <div class="analytics-value" id="timeSaved">0h</div>
+                        <div class="analytics-label">Using Auto-Apply</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Tab -->
+            <div id="form-tab" class="tab-content">
+                <div class="form-answers-container">
+                    <h3>Edit Your Scholarship Profile</h3>
+                    <form id="editProfileForm" onsubmit="saveProfileChanges(event)">
+                        <div id="savedAnswers">
+                            <!-- Saved answers will be loaded here -->
+                        </div>
+                        <button type="submit" class="save-form-btn">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="payment-modal">
+        <div class="payment-content">
+            <button class="close-modal" onclick="closePaymentModal()">×</button>
+            <h3>Start Your Free Trial</h3>
+            <p>7-day free trial, then $9.99/month. Cancel anytime.</p>
+            
+            <form id="payment-form" onsubmit="handlePayment(event)">
+                <div id="card-element">
+                    <!-- Stripe Card Element will be inserted here -->
+                </div>
+                <div id="card-errors" style="color: red; margin-top: 10px;"></div>
+                <button type="submit" class="payment-btn" id="submitPayment">
+                    Start Free Trial
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let isAuthenticated = false;
+        let currentFormStep = 1;
+        let stripe = null;
+        let elements = null;
+        let cardElement = null;
+        let userFormData = {};
+
+        // Initialize Stripe
+        async function initializeStripe() {
+            try {
+                const response = await fetch('/api/stripe-config');
+                const config = await response.json();
+                stripe = Stripe(config.publishableKey);
+                elements = stripe.elements();
+                
+                // Create card element
+                cardElement = elements.create('card', {
+                    style: {
+                        base: {
+                            fontSize: '16px',
+                            color: '#32325d',
+                            '::placeholder': {
+                                color: '#aab7c4'
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error initializing Stripe:', error);
+            }
+        }
+
+        // Navigation functions
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function handleLogoClick() {
+            if (isAuthenticated) {
+                showSection('dashboard');
+            } else {
+                showSection('hero');
+            }
+        }
+
+        function showFeatures() {
+            showSection('features');
+        }
+
+        function showHowItWorks() {
+            showSection('how-it-works');
+        }
+
+        function showPricing() {
+            showSection('pricing');
+        }
+
+        function showAuth(tab = 'signin') {
+            showSection('auth');
+            setTimeout(() => switchAuthTab(tab), 100);
+        }
+
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            const activeTab = Array.from(document.querySelectorAll('.auth-tab')).find(t => 
+                t.textContent.toLowerCase().includes(tab.toLowerCase())
+            );
+            if (activeTab) activeTab.classList.add('active');
+            
+            document.querySelectorAll('.auth-form-container').forEach(f => f.classList.remove('active'));
+            const activeForm = document.getElementById(`${tab}-form`);
+            if (activeForm) activeForm.classList.add('active');
+        }
+
+        // Auth button toggle
+        function toggleAuthButton() {
+            if (isAuthenticated) {
+                handleSignOut();
+            } else {
+                showAuth('signup');
+            }
+        }
+
+        function updateAuthButton() {
+            const authButton = document.getElementById('authButton');
+            if (isAuthenticated) {
+                authButton.textContent = 'Sign Out';
+                authButton.classList.add('signout');
+            } else {
+                authButton.textContent = 'Sign Up';
+                authButton.classList.remove('signout');
+            }
+        }
+
+        // Authentication handlers
+        async function handleSignIn(event) {
+            event.preventDefault();
+            const form = event.target;
+            const email = form.querySelector('#signin-email').value;
+            const password = form.querySelector('#signin-password').value;
+
+            try {
+                const response = await fetch('/api/users/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    currentUser = data.user;
+                    isAuthenticated = true;
+                    updateAuthButton();
+                    document.getElementById('userName').textContent = currentUser.name;
+                    showSuccess('Successfully signed in!');
+                    loadDashboardData();
+                    showSection('dashboard');
+                    form.reset();
+                } else {
+                    alert(data.error || 'Failed to sign in');
+                }
+            } catch (error) {
+                console.error('Sign in error:', error);
+                alert('Failed to sign in. Please try again.');
+            }
+        }
+
+        async function handleSignUp(event) {
+            event.preventDefault();
+            const form = event.target;
+            const name = form.querySelector('#signup-name').value;
+            const email = form.querySelector('#signup-email').value;
+            const password = form.querySelector('#signup-password').value;
+
+            try {
+                const response = await fetch('/api/users/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    currentUser = data.user;
+                    isAuthenticated = true;
+                    updateAuthButton();
+                    document.getElementById('userName').textContent = currentUser.name;
+                    showSuccess('Account created successfully!');
+                    form.reset();
+                    showSection('scholarship-form');
+                } else {
+                    alert(data.error || 'Failed to create account');
+                }
+            } catch (error) {
+                console.error('Sign up error:', error);
+                alert('Failed to create account. Please try again.');
+            }
+        }
+
+        function handleSignOut() {
+            localStorage.removeItem('token');
+            currentUser = null;
+            isAuthenticated = false;
+            updateAuthButton();
+            showSuccess('Signed out successfully!');
+            showSection('hero');
+        }
+
+        // Form navigation
+        function nextStep() {
+            if (validateStep(currentFormStep)) {
+                saveStepData(currentFormStep);
+                
+                document.querySelector(`.form-step[data-step="${currentFormStep}"]`).classList.remove('active');
+                document.querySelector(`.progress-step[data-step="${currentFormStep}"]`).classList.add('completed');
+                
+                currentFormStep++;
+                
+                document.querySelector(`.form-step[data-step="${currentFormStep}"]`).classList.add('active');
+                document.querySelector(`.progress-step[data-step="${currentFormStep}"]`).classList.add('active');
+                
+                updateFormNavigation();
+            }
+        }
+
+        function previousStep() {
+            saveStepData(currentFormStep);
+            
+            document.querySelector(`.form-step[data-step="${currentFormStep}"]`).classList.remove('active');
+            document.querySelector(`.progress-step[data-step="${currentFormStep}"]`).classList.remove('active');
+            
+            currentFormStep--;
+            
+            document.querySelector(`.form-step[data-step="${currentFormStep}"]`).classList.add('active');
+            
+            updateFormNavigation();
+        }
+
+        function updateFormNavigation() {
+            const prevBtn = document.querySelector('.btn-prev');
+            const nextBtn = document.querySelector('.btn-next');
+            const submitBtn = document.querySelector('.btn-submit');
+            
+            prevBtn.style.display = currentFormStep === 1 ? 'none' : 'block';
+            
+            if (currentFormStep === 4) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'block';
+            } else {
+                nextBtn.style.display = 'block';
+                submitBtn.style.display = 'none';
+            }
+        }
+
+        function validateStep(step) {
+            const currentStepElement = document.querySelector(`.form-step[data-step="${step}"]`);
+            const requiredFields = currentStepElement.querySelectorAll('[required]');
+            
+            for (let field of requiredFields) {
+                if (!field.value.trim()) {
+                    field.focus();
+                    alert('Please fill in all required fields');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function saveStepData(step) {
+            const stepElement = document.querySelector(`.form-step[data-step="${step}"]`);
+            const inputs = stepElement.querySelectorAll('input, textarea, select');
+            
+            inputs.forEach(input => {
+                userFormData[input.id] = input.value;
+            });
+        }
+
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            if (!validateStep(currentFormStep)) {
+                return;
+            }
+            
+            saveStepData(currentFormStep);
+            
+            try {
+                const response = await fetch('/api/form/answers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(userFormData)
+                });
+
+                if (response.ok) {
+                    showSuccess('Profile completed successfully!');
+                    loadDashboardData();
+                    showSection('dashboard');
+                } else {
+                    alert('Failed to save profile');
+                }
+            } catch (error) {
+                console.error('Error saving profile:', error);
+                alert('Failed to save profile');
+            }
+        }
+
+        // Dashboard functions
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            const activeTab = Array.from(document.querySelectorAll('.tab-btn')).find(btn => 
+                btn.textContent.toLowerCase().includes(tabName.toLowerCase())
+            );
+            if (activeTab) activeTab.classList.add('active');
+            
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            if (tabName === 'form') {
+                loadSavedAnswers();
+            }
+        }
+
+        async function loadDashboardData() {
+            await loadScholarships();
+            await loadApplications();
+            await loadAnalytics();
+        }
+
+        async function loadScholarships() {
+            try {
+                const response = await fetch('/api/scholarships', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const scholarships = await response.json();
+                    displayScholarships(scholarships);
+                }
+            } catch (error) {
+                console.error('Error loading scholarships:', error);
+            }
+        }
+
+        function displayScholarships(scholarships) {
+            const container = document.getElementById('scholarshipsList');
+            container.innerHTML = scholarships.map(scholarship => `
+                <div class="scholarship-card" data-scholarship='${JSON.stringify(scholarship)}'>
+                    <div class="scholarship-info">
+                        <h3>${scholarship.name || scholarship.title}</h3>
+                        <p class="organization">${scholarship.organization} • ${scholarship.description}</p>
+                        <div class="requirements">
+                            ${scholarship.requirements.map(req => `<div class="req-tag">${req}</div>`).join('')}
+                        </div>
+                        <div class="match-score">
+                            <span>Match Score</span>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: ${scholarship.matchScore || 85}%"></div>
+                            </div>
+                            <span class="score">${scholarship.matchScore || 85}%</span>
+                        </div>
+                    </div>
+                    <div class="scholarship-action">
+                        <div class="amount">${scholarship.amount.toLocaleString()}</div>
+                        <button class="auto-apply-btn" onclick="autoApply('${scholarship._id}', this)">
+                            Auto-Apply
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function searchScholarships() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            try {
+                const response = await fetch(`/api/scholarships/search?q=${searchTerm}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const scholarships = await response.json();
+                    displayScholarships(scholarships);
+                }
+            } catch (error) {
+                console.error('Error searching scholarships:', error);
+            }
+        }
+
+        function toggleFilterMenu() {
+            const menu = document.getElementById('filterMenu');
+            menu.classList.toggle('active');
+        }
+
+        async function filterScholarships(filterType) {
+            toggleFilterMenu();
+            
+            try {
+                let url = '/api/scholarships';
+                if (filterType !== 'all') {
+                    url = `/api/scholarships/filter?status=${filterType}`;
+                }
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const scholarships = await response.json();
+                    displayScholarships(scholarships);
+                }
+            } catch (error) {
+                console.error('Error filtering scholarships:', error);
+            }
+        }
+
+        async function autoApply(scholarshipId, button) {
+            button.disabled = true;
+            button.classList.add('applying');
+            button.innerHTML = '<span class="spinner"></span> Applying...';
+            
+            try {
+                // Get user's saved form data
+                const formResponse = await fetch('/api/form/questions', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                const formData = await formResponse.json();
+                
+                // Simulate form filling with delays
+                await simulateFormFilling();
+                
+                // Create application
+                const response = await fetch('/api/applications', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ 
+                        scholarshipId,
+                        formData: userFormData
+                    })
+                });
+                
+                if (response.ok) {
+                    showSuccess('Application submitted successfully!');
+                    button.innerHTML = 'Applied';
+                    button.disabled = true;
+                    await loadApplications();
+                } else {
+                    throw new Error('Failed to submit application');
+                }
+            } catch (error) {
+                console.error('Error applying to scholarship:', error);
+                alert('Failed to submit application');
+                button.disabled = false;
+                button.classList.remove('applying');
+                button.innerHTML = 'Auto-Apply';
+            }
+        }
+
+        async function simulateFormFilling() {
+            // Simulate the AI filling out the form with delays
+            const steps = [
+                'Analyzing form fields...',
+                'Filling personal information...',
+                'Adding academic details...',
+                'Completing essay questions...',
+                'Reviewing application...'
+            ];
+            
+            for (let step of steps) {
+                console.log(step);
+                await new Promise(resolve => setTimeout(resolve, 1500));
+            }
+        }
+
+        async function loadApplications() {
+            try {
+                const response = await fetch('/api/applications', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const applications = await response.json();
+                    displayApplications(applications);
+                }
+            } catch (error) {
+                console.error('Error loading applications:', error);
+            }
+        }
+
+        function displayApplications(applications) {
+            const container = document.getElementById('applicationsList');
+            
+            if (applications.length === 0) {
+                container.innerHTML = '<p>No applications yet. Start applying to scholarships!</p>';
+                return;
+            }
+            
+            container.innerHTML = applications.map(app => `
+                <div class="application-item">
+                    <div>
+                        <h4>${app.scholarshipTitle || 'Scholarship'}</h4>
+                        <p>Applied on ${new Date(app.submittedAt).toLocaleDateString()}</p>
+                    </div>
+                    <div>
+                        <span class="app-status ${app.status}">${app.status.toUpperCase()}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadAnalytics() {
+            try {
+                const response = await fetch('/api/analytics', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const analytics = await response.json();
+                    displayAnalytics(analytics);
+                }
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+            }
+        }
+
+        function displayAnalytics(analytics) {
+            document.getElementById('totalApplications').textContent = analytics.totalApplications || 0;
+            document.getElementById('successRate').textContent = `${analytics.successRate || 0}%`;
+            document.getElementById('totalAwarded').textContent = `${(analytics.totalAwarded || 0).toLocaleString()}`;
+            document.getElementById('timeSaved').textContent = `${analytics.timeSaved || 0}h`;
+        }
+
+        async function loadSavedAnswers() {
+            try {
+                const response = await fetch('/api/form/questions', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const questions = await response.json();
+                    displaySavedAnswers(questions);
+                }
+            } catch (error) {
+                console.error('Error loading saved answers:', error);
+            }
+        }
+
+        function displaySavedAnswers(questions) {
+            const container = document.getElementById('savedAnswers');
+            container.innerHTML = questions.map(q => `
+                <div class="saved-answer">
+                    <label for="answer-${q._id}">${q.question}</label>
+                    ${q.type === 'textarea' ? 
+                        `<textarea id="answer-${q._id}" rows="4">${q.answer || ''}</textarea>` :
+                        q.type === 'select' ?
+                        `<select id="answer-${q._id}">
+                            ${q.options.map(opt => `<option value="${opt}" ${q.answer === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                        </select>` :
+                        `<input type="text" id="answer-${q._id}" value="${q.answer || ''}">`
+                    }
+                </div>
+            `).join('');
+        }
+
+        async function saveProfileChanges(event) {
+            event.preventDefault();
+            
+            const answers = {};
+            document.querySelectorAll('[id^="answer-"]').forEach(field => {
+                const id = field.id.replace('answer-', '');
+                answers[id] = field.value;
+            });
+            
+            try {
+                const response = await fetch('/api/form/answers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(answers)
+                });
+                
+                if (response.ok) {
+                    showSuccess('Profile updated successfully!');
+                } else {
+                    alert('Failed to save changes');
+                }
+            } catch (error) {
+                console.error('Error saving profile:', error);
+                alert('Failed to save changes');
+            }
+        }
+
+        // Payment functions
+        function showPaymentModal() {
+            const modal = document.getElementById('paymentModal');
+            modal.classList.add('active');
+            
+            if (cardElement) {
+                cardElement.mount('#card-element');
+            }
+        }
+
+        function closePaymentModal() {
+            const modal = document.getElementById('paymentModal');
+            modal.classList.remove('active');
+            
+            if (cardElement) {
+                cardElement.unmount();
+            }
+        }
+
+        async function handlePayment(event) {
+            event.preventDefault();
+            
+            const submitButton = document.getElementById('submitPayment');
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="spinner"></span> Processing...';
+            
+            try {
+                const { error, paymentMethod } = await stripe.createPaymentMethod({
+                    type: 'card',
+                    card: cardElement,
+                    billing_details: {
+                        email: currentUser.email
+                    }
+                });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                const response = await fetch('/api/create-subscription', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        paymentMethodId: paymentMethod.id,
+                        email: currentUser.email
+                    })
+                });
+                
+                const subscription = await response.json();
+                
+                if (response.ok) {
+                    showSuccess('Subscription activated successfully!');
+                    closePaymentModal();
+                } else {
+                    throw new Error(subscription.error || 'Payment failed');
+                }
+            } catch (error) {
+                console.error('Payment error:', error);
+                document.getElementById('card-errors').textContent = error.message;
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = 'Start Free Trial';
+            }
+        }
+
+        // Utility functions
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializeStripe();
+            
+            // Initialize dashboard if on dashboard page
+            if (window.location.hash === '#dashboard') {
+                loadDashboard();
+            }
+            
+            // Check auth status
+            checkAuthStatus();
+            
+            // Check if user is already logged in
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await fetch('/api/users/me', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const userData = await response.json();
+                        currentUser = userData;
+                        isAuthenticated = true;
+                        updateAuthButton();
+                        document.getElementById('userName').textContent = currentUser.name || currentUser.email.split('@')[0];
+                    }
+                } catch (error) {
+                    console.error('Error fetching user data:', error);
+                }
+            }
+            
+            // Add event listeners
+            document.addEventListener('click', (e) => {
+                // Close filter menu when clicking outside
+                if (!e.target.closest('.filter-dropdown')) {
+                    document.getElementById('filterMenu').classList.remove('active');
+                }
+            });
+        });
+        // Function to send profile data to Chrome extension
+function sendProfileToExtension() {
+    if (!currentUser || !userFormData) {
+        console.error('No user data available');
+        return;
+    }
+    
+    // Combine all user data
+    const completeProfile = {
+        name: currentUser.name,
+        email: currentUser.email,
+        firstName: currentUser.firstName || currentUser.name.split(' ')[0],
+        lastName: currentUser.lastName || currentUser.name.split(' ').slice(1).join(' '),
+        ...userFormData
+    };
+    
+    // Send to extension via postMessage
+    window.postMessage({
+        type: 'scholarai-profile',
+        profile: completeProfile,
+        token: localStorage.getItem('token')
+    }, '*');
+}
+
+// Modified auto-apply function for your website
+async function autoApply(scholarshipId, button) {
+    button.disabled = true;
+    button.classList.add('applying');
+    
+    // Check if extension is installed
+    const extensionId = 'YOUR_EXTENSION_ID'; // You'll get this after publishing
+    
+    // First, try to detect if extension is installed
+    const isExtensionInstalled = await checkExtensionInstalled();
+    
+    if (!isExtensionInstalled) {
+        // Show installation prompt
+        showExtensionPrompt();
+        button.disabled = false;
+        button.classList.remove('applying');
+        return;
+    }
+    
+    // Get scholarship details
+    const scholarship = Array.from(inMemoryDB.scholarships.values())
+        .find(s => s._id === scholarshipId);
+    
+    if (!scholarship) {
+        alert('Scholarship not found');
+        button.disabled = false;
+        button.classList.remove('applying');
+        return;
+    }
+    
+    // Save application to database
+    try {
+        const response = await fetch('/api/applications', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ 
+                scholarshipId,
+                status: 'in-progress',
+                applicationUrl: scholarship.applicationUrl
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to create application');
+        }
+        
+        // Send profile to extension
+        sendProfileToExtension();
+        
+        // Open scholarship application in new tab
+        const newTab = window.open(scholarship.applicationUrl, '_blank');
+        
+        // Show instructions
+        showAutoFillInstructions();
+        
+        // Update button
+        button.innerHTML = 'Application Started';
+        button.disabled = true;
+        
+    } catch (error) {
+        console.error('Error starting application:', error);
+        alert('Failed to start application');
+        button.disabled = false;
+        button.classList.remove('applying');
+    }
+}
+
+// Check if extension is installed
+async function checkExtensionInstalled() {
+    return new Promise((resolve) => {
+        // Try to communicate with extension
+        window.postMessage({ type: 'scholarai-extension-check' }, '*');
+        
+        // Wait for response
+        const timeout = setTimeout(() => {
+            resolve(false);
+        }, 1000);
+        
+        window.addEventListener('message', function listener(event) {
+            if (event.data.type === 'scholarai-extension-present') {
+                clearTimeout(timeout);
+                window.removeEventListener('message', listener);
+                resolve(true);
+            }
+        });
+    });
+}
+
+// Show extension installation prompt
+function showExtensionPrompt() {
+    const modal = document.createElement('div');
+    modal.className = 'extension-prompt-modal';
+    modal.innerHTML = `
+        <div class="extension-prompt-content">
+            <h3>Install ScholarAI Extension</h3>
+            <p>To use the auto-fill feature, you need to install our Chrome extension.</p>
+            
+            <div class="extension-features">
+                <div class="feature">
+                    <span class="icon">🚀</span>
+                    <span>Fill applications instantly</span>
+                </div>
+                <div class="feature">
+                    <span class="icon">🔒</span>
+                    <span>Your data stays private</span>
+                </div>
+                <div class="feature">
+                    <span class="icon">⚡</span>
+                    <span>Works on any scholarship site</span>
+                </div>
+            </div>
+            
+            <div class="extension-actions">
+                <button onclick="installExtension()" class="install-btn">
+                    Install Extension
+                </button>
+                <button onclick="closeExtensionPrompt()" class="cancel-btn">
+                    Maybe Later
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+// Install extension
+function installExtension() {
+    // For Chrome Web Store
+    const extensionUrl = 'https://chrome.google.com/webstore/detail/YOUR_EXTENSION_ID';
+    window.open(extensionUrl, '_blank');
+    closeExtensionPrompt();
+}
+
+// Close extension prompt
+function closeExtensionPrompt() {
+    const modal = document.querySelector('.extension-prompt-modal');
+    if (modal) modal.remove();
+}
+
+// Show auto-fill instructions
+function showAutoFillInstructions() {
+    const instructions = document.createElement('div');
+    instructions.className = 'autofill-instructions';
+    instructions.innerHTML = `
+        <div class="instructions-content">
+            <h4>Auto-Fill Instructions</h4>
+            <ol>
+                <li>The scholarship application has opened in a new tab</li>
+                <li>Click the ScholarAI extension icon in your browser</li>
+                <li>Click "Fill This Form" to auto-complete the application</li>
+                <li>Review and submit the filled application</li>
+            </ol>
+            <button onclick="this.parentElement.parentElement.remove()">Got it!</button>
+        </div>
+    `;
+    
+    document.body.appendChild(instructions);
+}
+
+// Add CSS for the new elements
+const extensionStyles = `
+    .extension-prompt-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    }
+    
+    .extension-prompt-content {
+        background: white;
+        border-radius: 20px;
+        padding: 3rem;
+        max-width: 500px;
+        width: 90%;
+        color: #1F2937;
+        text-align: center;
+    }
+    
+    .extension-prompt-content h3 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: #4F46E5;
+    }
+    
+    .extension-features {
+        margin: 2rem 0;
+        text-align: left;
+    }
+    
+    .feature {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin: 1rem 0;
+        font-size: 1.1rem;
+    }
+    
+    .feature .icon {
+        font-size: 1.5rem;
+    }
+    
+    .extension-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .install-btn {
+        flex: 1;
+        padding: 1rem 2rem;
+        background: #4F46E5;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    
+    .install-btn:hover {
+        background: #4338CA;
+    }
+    
+    .cancel-btn {
+        flex: 1;
+        padding: 1rem 2rem;
+        background: #E5E7EB;
+        color: #6B7280;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    
+    .autofill-instructions {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #4F46E5;
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        max-width: 400px;
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    .instructions-content h4 {
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+    }
+    
+    .instructions-content ol {
+        margin: 1rem 0;
+        padding-left: 1.5rem;
+    }
+    
+    .instructions-content li {
+        margin: 0.5rem 0;
+        line-height: 1.5;
+    }
+    
+    .instructions-content button {
+        width: 100%;
+        padding: 0.8rem;
+        background: white;
+        color: #4F46E5;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 1rem;
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+`;
+
+// Add styles to document
+const styleSheet = document.createElement('style');
+styleSheet.textContent = extensionStyles;
+document.head.appendChild(styleSheet);
+
+// Listen for extension presence check
+window.addEventListener('message', (event) => {
+    if (event.data.type === 'scholarai-extension-check') {
+        // Extension will respond if installed
+    }
+});
+    </script>
+    <script>
+        // Enhanced navigation functions from index.html
+        function handleLogoClick() {
+            showSection('home');
+            window.scrollTo(0, 0);
+        }
+
+        function switchTab(tabId) {
+            // Update active tab
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tabId);
+            });
+            
+            // Load tab content
+            loadTabContent(tabId);
+        }
+
+        async function loadTabContent(tabId) {
+            const contentDiv = document.getElementById('dashboard-content');
+            contentDiv.innerHTML = '<div class="loading-spinner"></div> Loading...';
+            
+            try {
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 800));
+                
+                switch(tabId) {
+                    case 'scholarships':
+                        await loadScholarships();
+                        break;
+                    case 'applications':
+                        await loadApplications();
+                        break;
+                    case 'analytics':
+                        await loadAnalytics();
+                        break;
+                    case 'profile':
+                        await loadProfile();
+                        break;
+                }
+            } catch (error) {
+                console.error('Error loading tab content:', error);
+                showMessage('Failed to load content. Please try again.', 'error');
+            }
+        }
+
+        // Auth functions
+        function checkAuthStatus() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            updateAuthUI(isLoggedIn);
+            return isLoggedIn;
+        }
+
+        function updateAuthUI(isLoggedIn) {
+            const loginBtn = document.getElementById('loginBtn');
+            const signupBtn = document.getElementById('signupBtn');
+            const profileBtn = document.getElementById('profileBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            
+            if (isLoggedIn) {
+                loginBtn.style.display = 'none';
+                signupBtn.style.display = 'none';
+                profileBtn.style.display = 'inline-block';
+                logoutBtn.style.display = 'inline-block';
+            } else {
+                loginBtn.style.display = 'inline-block';
+                signupBtn.style.display = 'inline-block';
+                profileBtn.style.display = 'none';
+                logoutBtn.style.display = 'none';
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('isLoggedIn');
+            updateAuthUI(false);
+            showSection('home');
+            showMessage('You have been signed out.', 'success');
+        }
+
+        function showAuth(type) {
+            showSection('auth');
+            if (type === 'login') {
+                // Show signin form and hide signup form
+                document.getElementById('signin-form').classList.add('active');
+                document.getElementById('signup-form').classList.remove('active');
+                // Update active tab
+                document.querySelectorAll('.auth-tab').forEach(tab => {
+                    tab.classList.toggle('active', tab.textContent.trim() === 'Sign In');
+                });
+            } else {
+                // Show signup form and hide signin form
+                document.getElementById('signin-form').classList.remove('active');
+                document.getElementById('signup-form').classList.add('active');
+                // Update active tab
+                document.querySelectorAll('.auth-tab').forEach(tab => {
+                    tab.classList.toggle('active', tab.textContent.trim() === 'Sign Up');
+                });
+            }
+        }
+
+        function switchAuthTab(tab) {
+            if (tab === 'signin') {
+                showAuth('login');
+            } else {
+                showAuth('signup');
+            }
+        }
+
+        // Make functions globally available
+        window.handleLogoClick = handleLogoClick;
+        window.switchTab = switchTab;
+        window.loadTabContent = loadTabContent;
+        window.checkAuthStatus = checkAuthStatus;
+        window.updateAuthUI = updateAuthUI;
+        window.handleLogout = handleLogout;
+        window.showAuth = showAuth;
+        class ScholarAIAutoApply {
+    constructor() {
+        this.aiServiceUrl = 'http://localhost:5001';
+        this.extensionId = null; // Will be set after publishing to Chrome store
+    }
+
+    async initializeAutoApply(scholarshipId, button) {
+        try {
+            button.disabled = true;
+            button.classList.add('applying');
+            button.innerHTML = '<span class="spinner"></span> Initializing...';
+
+            // Get scholarship details
+            const scholarship = this.getScholarshipById(scholarshipId);
+            if (!scholarship || !scholarship.applicationUrl) {
+                throw new Error('Invalid scholarship or missing application URL');
+            }
+
+            // Get user's complete profile
+            const userProfile = await this.getUserProfile();
+
+            // Check which method to use
+            const method = await this.determineAutoFillMethod(scholarship);
+
+            switch (method) {
+                case 'extension':
+                    await this.autoApplyWithExtension(scholarship, userProfile, button);
+                    break;
+                case 'api':
+                    await this.autoApplyWithAPI(scholarship, userProfile, button);
+                    break;
+                case 'iframe':
+                    await this.autoApplyWithIframe(scholarship, userProfile, button);
+                    break;
+                default:
+                    throw new Error('No suitable autofill method available');
+            }
+
+        } catch (error) {
+            console.error('Auto-apply error:', error);
+            this.showError(error.message);
+            button.disabled = false;
+            button.classList.remove('applying');
+            button.innerHTML = 'Auto-Apply';
+        }
+    }
+
+    async determineAutoFillMethod(scholarship) {
+        // Check if extension is installed
+        const extensionInstalled = await this.checkExtensionInstalled();
+        if (extensionInstalled) {
+            return 'extension';
+        }
+
+        // Check if scholarship platform has API integration
+        if (scholarship.apiIntegration) {
+            return 'api';
+        }
+
+        // Check if same-origin (can use iframe)
+        try {
+            const url = new URL(scholarship.applicationUrl);
+            if (url.origin === window.location.origin) {
+                return 'iframe';
+            }
+        } catch (e) {
+            // Invalid URL
+        }
+
+        // Default to extension method (will prompt installation)
+        return 'extension';
+    }
+
+    async getUserProfile() {
+        // Get user data from localStorage or API
+        const token = localStorage.getItem('token');
+        const savedFormData = JSON.parse(localStorage.getItem('userFormData') || '{}');
+        
+        // Fetch latest profile data
+        const response = await fetch('/api/users/profile', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch user profile');
+        }
+
+        const profileData = await response.json();
+
+        // Combine all user data
+        return {
+            ...profileData,
+            ...savedFormData,
+            // Ensure all fields are present
+            firstName: profileData.firstName || profileData.name?.split(' ')[0] || '',
+            lastName: profileData.lastName || profileData.name?.split(' ').slice(1).join(' ') || '',
+            fullName: profileData.name || `${profileData.firstName} ${profileData.lastName}`,
+            // Add formatted versions
+            phoneFormatted: this.formatPhone(savedFormData.phone),
+            dateOfBirthFormatted: this.formatDate(savedFormData.dateOfBirth),
+            // Add essay responses
+            essays: {
+                careerGoals: savedFormData.careerGoals || '',
+                whyDeserving: savedFormData.whyDeserving || '',
+                challenges: savedFormData.challenges || '',
+                leadershipExperience: savedFormData.activities || '',
+                communityService: savedFormData.communityService || ''
+            }
+        };
+    }
+
+    async autoApplyWithExtension(scholarship, userProfile, button) {
+        // Check if extension is installed
+        const isInstalled = await this.checkExtensionInstalled();
+        
+        if (!isInstalled) {
+            // Show installation prompt
+            this.showExtensionInstallPrompt(scholarship, userProfile, button);
+            return;
+        }
+
+        // Prepare AI-enhanced filling instructions
+        button.innerHTML = '<span class="spinner"></span> Preparing AI instructions...';
+        
+        const fillingScript = await this.prepareAIFillingScript(scholarship.applicationUrl, userProfile);
+
+        // Send to extension
+        this.sendToExtension({
+            action: 'prepareAutoFill',
+            scholarshipId: scholarship._id,
+            applicationUrl: scholarship.applicationUrl,
+            userProfile: userProfile,
+            fillingScript: fillingScript
+        });
+
+        // Open application in new tab
+        const newTab = window.open(scholarship.applicationUrl, '_blank');
+
+        // Show floating instructions
+        this.showFloatingInstructions(scholarship);
+
+        // Update application status
+        await this.updateApplicationStatus(scholarship._id, 'in-progress');
+
+        button.innerHTML = 'Application Started';
+        button.disabled = true;
+    }
+
+    async prepareAIFillingScript(applicationUrl, userProfile) {
+        try {
+            const response = await fetch(`${this.aiServiceUrl}/api/prepare-autofill`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    formUrl: applicationUrl,
+                    userData: userProfile
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to prepare AI filling script');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('AI preparation error:', error);
+            // Return fallback script
+            return this.createFallbackScript(userProfile);
+        }
+    }
+
+    createFallbackScript(userProfile) {
+        return {
+            version: '1.0',
+            instructions: [
+                // Personal info
+                { fieldPatterns: ['first.*name'], value: userProfile.firstName, method: 'type' },
+                { fieldPatterns: ['last.*name'], value: userProfile.lastName, method: 'type' },
+                { fieldPatterns: ['email'], value: userProfile.email, method: 'type' },
+                { fieldPatterns: ['phone'], value: userProfile.phone, method: 'type' },
+                // Academic info
+                { fieldPatterns: ['school'], value: userProfile.school, method: 'type' },
+                { fieldPatterns: ['gpa'], value: userProfile.gpa, method: 'type' },
+                { fieldPatterns: ['major'], value: userProfile.major, method: 'type' },
+                // Essays
+                { fieldPatterns: ['goals', 'career'], value: userProfile.essays.careerGoals, method: 'type' },
+                { fieldPatterns: ['why', 'deserve'], value: userProfile.essays.whyDeserving, method: 'type' }
+            ]
+        };
+    }
+
+    async autoApplyWithAPI(scholarship, userProfile, button) {
+        button.innerHTML = '<span class="spinner"></span> Submitting via API...';
+
+        try {
+            // Call partner API
+            const response = await fetch(`/api/partner-submit/${scholarship.platform}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    scholarshipId: scholarship.partnerId,
+                    applicationData: userProfile
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('API submission failed');
+            }
+
+            const result = await response.json();
+
+            // Update application status
+            await this.updateApplicationStatus(scholarship._id, 'submitted');
+
+            button.innerHTML = 'Submitted';
+            button.disabled = true;
+            
+            this.showSuccess('Application submitted successfully via API!');
+
+        } catch (error) {
+            throw new Error(`API submission failed: ${error.message}`);
+        }
+    }
+
+    async autoApplyWithIframe(scholarship, userProfile, button) {
+        // For same-origin forms, we can fill directly
+        button.innerHTML = '<span class="spinner"></span> Filling form...';
+
+        // Create hidden iframe
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = scholarship.applicationUrl;
+        document.body.appendChild(iframe);
+
+        iframe.onload = async () => {
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                // Send HTML to AI for analysis
+                const formHTML = iframeDoc.body.innerHTML;
+                const analysis = await this.analyzeFormWithAI(formHTML, userProfile);
+
+                // Execute filling in iframe
+                await this.fillIframeForm(iframeDoc, analysis.fillingInstructions);
+
+                // Show iframe for user review
+                this.showFormReviewModal(iframe, scholarship);
+
+                button.innerHTML = 'Review Application';
+                button.onclick = () => this.showFormReviewModal(iframe, scholarship);
+
+            } catch (error) {
+                iframe.remove();
+                throw error;
+            }
+        };
+    }
+
+    async analyzeFormWithAI(html, userData) {
+        const response = await fetch(`${this.aiServiceUrl}/api/analyze-form`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                html: html,
+                userData: userData
+            })
+        });
+
+        return await response.json();
+    }
+
+    showExtensionInstallPrompt(scholarship, userProfile, button) {
+        const modal = document.createElement('div');
+        modal.className = 'ai-extension-modal';
+        modal.innerHTML = `
+            <div class="ai-modal-content">
+                <button class="close-modal" onclick="this.parentElement.parentElement.remove()">×</button>
+                
+                <div class="ai-logo">
+                    <div class="ai-icon">🤖</div>
+                    <h3>AI-Powered Form Filling</h3>
+                </div>
+                
+                <p class="ai-description">
+                    Our Chrome extension uses advanced AI to intelligently fill out scholarship applications, 
+                    saving you hours of repetitive work.
+                </p>
+                
+                <div class="ai-features">
+                    <div class="ai-feature">
+                        <span class="icon">🧠</span>
+                        <div>
+                            <strong>AI-Powered</strong>
+                            <p>Understands complex forms and fills them accurately</p>
+                        </div>
+                    </div>
+                    <div class="ai-feature">
+                        <span class="icon">⚡</span>
+                        <div>
+                            <strong>Lightning Fast</strong>
+                            <p>Fills forms in seconds, not hours</p>
+                        </div>
+                    </div>
+                    <div class="ai-feature">
+                        <span class="icon">🔒</span>
+                        <div>
+                            <strong>Secure & Private</strong>
+                            <p>Your data never leaves your browser</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="install-steps">
+                    <h4>Quick Setup (30 seconds)</h4>
+                    <ol>
+                        <li>Click "Install Extension" below</li>
+                        <li>Add to Chrome when prompted</li>
+                        <li>Return here and click Auto-Apply again</li>
+                    </ol>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="install-extension-btn" onclick="scholarAI.installExtension()">
+                        <span class="icon">🚀</span>
+                        Install Extension
+                    </button>
+                    <button class="manual-fill-btn" onclick="scholarAI.openManualFill('${scholarship.applicationUrl}')">
+                        Fill Manually Instead
+                    </button>
+                </div>
+                
+                <div class="trust-indicators">
+                    <span>✓ 50,000+ students</span>
+                    <span>✓ 4.9★ rating</span>
+                    <span>✓ 100% free</span>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+
+        // Reset button
+        button.disabled = false;
+        button.classList.remove('applying');
+        button.innerHTML = 'Auto-Apply';
+    }
+
+    showFloatingInstructions(scholarship) {
+        const instructions = document.createElement('div');
+        instructions.className = 'ai-floating-instructions';
+        instructions.innerHTML = `
+            <div class="instructions-header">
+                <h4>🤖 AI Auto-Fill Ready</h4>
+                <button class="minimize-btn" onclick="this.parentElement.parentElement.classList.toggle('minimized')">_</button>
+            </div>
+            
+            <div class="instructions-body">
+                <p><strong>${scholarship.name}</strong> application opened in new tab</p>
+                
+                <div class="step-indicator">
+                    <div class="step active">1. Form Opened</div>
+                    <div class="step">2. Click Extension</div>
+                    <div class="step">3. Review & Submit</div>
+                </div>
+                
+                <div class="instructions-steps">
+                    <p>👆 Click the ScholarAI extension icon in your browser toolbar</p>
+                    <p>🎯 Click "Fill This Form" to auto-complete the application</p>
+                    <p>✅ Review the filled information and submit</p>
+                </div>
+                
+                <div class="ai-status">
+                    <span class="pulse"></span>
+                    AI is analyzing the form structure...
+                </div>
+                
+                <button class="help-btn" onclick="scholarAI.showHelp()">
+                    Need Help?
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(instructions);
+
+        // Auto-hide after 30 seconds
+        setTimeout(() => {
+            instructions.classList.add('minimized');
+        }, 30000);
+    }
+
+    showFormReviewModal(iframe, scholarship) {
+        const modal = document.createElement('div');
+        modal.className = 'form-review-modal';
+        modal.innerHTML = `
+            <div class="review-content">
+                <div class="review-header">
+                    <h3>Review Your Application</h3>
+                    <button class="close-review" onclick="this.closest('.form-review-modal').remove()">×</button>
+                </div>
+                
+                <div class="review-iframe-container">
+                    <!-- Iframe will be moved here -->
+                </div>
+                
+                <div class="review-actions">
+                    <button class="submit-application-btn" onclick="scholarAI.submitIframeForm()">
+                        Submit Application
+                    </button>
+                    <button class="edit-form-btn" onclick="scholarAI.editInNewTab('${scholarship.applicationUrl}')">
+                        Edit in New Tab
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Move iframe into modal
+        iframe.style.display = 'block';
+        iframe.style.width = '100%';
+        iframe.style.height = '600px';
+        iframe.style.border = '1px solid #e5e7eb';
+        iframe.style.borderRadius = '8px';
+        
+        document.body.appendChild(modal);
+        modal.querySelector('.review-iframe-container').appendChild(iframe);
+    }
+
+    async updateApplicationStatus(scholarshipId, status) {
+        try {
+            await fetch('/api/applications', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    scholarshipId: scholarshipId,
+                    status: status
+                })
+            });
+        } catch (error) {
+            console.error('Failed to update application status:', error);
+        }
+    }
+
+    // Helper methods
+    formatPhone(phone) {
+        if (!phone) return '';
+        const digits = phone.replace(/\D/g, '');
+        if (digits.length === 10) {
+            return `(${digits.substr(0,3)}) ${digits.substr(3,3)}-${digits.substr(6,4)}`;
+        }
+        return phone;
+    }
+
+    formatDate(date) {
+        if (!date) return '';
+        const d = new Date(date);
+        return `${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}/${d.getFullYear()}`;
+    }
+
+    checkExtensionInstalled() {
+        return new Promise((resolve) => {
+            if (!this.extensionId) {
+                resolve(false);
+                return;
+            }
+
+            // Try to communicate with extension
+            chrome.runtime.sendMessage(this.extensionId, { action: 'ping' }, (response) => {
+                resolve(!!response);
+            });
+
+            // Timeout fallback
+            setTimeout(() => resolve(false), 1000);
+        });
+    }
+
+    sendToExtension(data) {
+        if (this.extensionId) {
+            chrome.runtime.sendMessage(this.extensionId, data);
+        } else {
+            // Broadcast to any ScholarAI extension
+            window.postMessage({
+                source: 'scholarai-website',
+                ...data
+            }, '*');
+        }
+    }
+
+    installExtension() {
+        // Chrome Web Store URL (replace with your actual extension URL)
+        const extensionUrl = 'https://chrome.google.com/webstore/detail/scholarai-autofill/YOUR_EXTENSION_ID';
+        window.open(extensionUrl, '_blank');
+    }
+
+    openManualFill(url) {
+        window.open(url, '_blank');
+        document.querySelector('.ai-extension-modal').remove();
+    }
+
+    showHelp() {
+        window.open('/help/autofill', '_blank');
+    }
+
+    showSuccess(message) {
+        const toast = document.createElement('div');
+        toast.className = 'success-toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    showError(message) {
+        const toast = document.createElement('div');
+        toast.className = 'error-toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+    }
+
+    getScholarshipById(id) {
+        // Get from your data store
+        return Array.from(inMemoryDB.scholarships.values()).find(s => s._id === id);
+    }
+}
+
+// Initialize the AI auto-apply system
+const scholarAI = new ScholarAIAutoApply();
+
+// Update the auto-apply button handler
+async function autoApply(scholarshipId, button) {
+    await scholarAI.initializeAutoApply(scholarshipId, button);
+}
+// Remember successful field mappings
+class FormMemory {
+    async rememberMapping(domain, fieldSelector, dataType) {
+        const key = `mapping_${domain}_${dataType}`;
+        localStorage.setItem(key, fieldSelector);
+    }
+    
+    async recallMapping(domain, dataType) {
+        const key = `mapping_${domain}_${dataType}`;
+        return localStorage.getItem(key);
+    }
+}
+
+const defaultFieldMappings = {
+    selector: "#firstName",
+    value: "John", 
+    confidence: 0.95,
+    alternativeSelectors: ["#fname", "input[name='first_name']"]
+};
+const rateLimiter = {
+    maxCallsPerHour: 20,
+    maxCallsPerDay: 100
+};
+const apiUrl = 'https://your-ai-service.com';
+class AutoFillProgress {
+    constructor() {
+        this.steps = [
+            'Analyzing form structure',
+            'Matching fields with your data',
+            'Filling personal information',
+            'Filling academic details',
+            'Completing essay questions',
+            'Validating entries'
+        ];
+        this.currentStep = 0;
+    }
+    
+    updateProgress() {
+        const progress = (this.currentStep / this.steps.length) * 100;
+        this.showProgressBar(progress, this.steps[this.currentStep]);
+        this.currentStep++;
+    }
+}
+async function trackAutoFillSuccess(scholarshipId, success, failureReason = null) {
+    await fetch('/api/analytics/autofill', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+            scholarshipId,
+            success,
+            failureReason,
+            timestamp: new Date(),
+            browserInfo: navigator.userAgent
+        })
+    });
+}
+    </script>
+</html>

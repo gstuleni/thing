@@ -1,0 +1,68 @@
+// popup.html
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      width: 350px;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+    h2 {
+      color: #4F46E5;
+      margin-bottom: 20px;
+    }
+    .status {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+    .connected {
+      background: #D1FAE5;
+      color: #065F46;
+    }
+    .disconnected {
+      background: #FEE2E2;
+      color: #991B1B;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #4F46E5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #4338CA;
+    }
+    .profile-info {
+      background: #F3F4F6;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <h2>ScholarAI Autofill</h2>
+  
+  <div id="status" class="status disconnected">
+    Not connected to ScholarAI
+  </div>
+  
+  <div id="profileInfo" class="profile-info" style="display: none;">
+    <strong>Profile loaded:</strong>
+    <div id="userName"></div>
+    <div id="userEmail"></div>
+  </div>
+  
+  <button id="connectBtn">Connect to ScholarAI</button>
+  <button id="fillBtn" style="display: none;">Fill This Form</button>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
