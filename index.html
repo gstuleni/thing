@@ -1,1459 +1,1799 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScholarAI - Scholarship Application Assistant</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://js.stripe.com/v3/"></script>
+<!-- Profile Tab -->
+<div id="profile-tab" class="<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>ScholarAI - Scholarship Application Assistant</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+        <script src="https://js.stripe.com/v3/"></script>
+        
+        <style>
+            /* Base styles */
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: 'Inter', sans-serif;
+            }
     
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
-        :root {
-            --primary: #4F46E5;
-            --primary-dark: #4338CA;
-            --secondary: #7C3AED;
-            --accent: #8B5CF6;
-            --text: #1F2937;
-            --text-light: #6B7280;
-            --background: #F9FAFB;
-        }
-
-        body {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            min-height: 100vh;
-            color: white;
-            line-height: 1.6;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        /* Floating Circles Animation */
-        .floating-circles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        .circle {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(5px);
-            border-radius: 50%;
-            animation: float 15s infinite;
-        }
-
-        .circle:nth-child(1) {
-            width: 300px;
-            height: 300px;
-            top: 10%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-
-        .circle:nth-child(2) {
-            width: 200px;
-            height: 200px;
-            top: 60%;
-            right: 15%;
-            animation-delay: -5s;
-        }
-
-        .circle:nth-child(3) {
-            width: 150px;
-            height: 150px;
-            top: 30%;
-            right: 30%;
-            animation-delay: -2s;
-        }
-
-        .circle:nth-child(4) {
-            width: 100px;
-            height: 100px;
-            bottom: 20%;
-            left: 20%;
-            animation-delay: -7s;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            25% { transform: translate(50px, 50px) rotate(90deg); }
-            50% { transform: translate(0, 100px) rotate(180deg); }
-            75% { transform: translate(-50px, 50px) rotate(270deg); }
-        }
-
-        /* Navigation */
-        .nav {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 1.25rem 2rem;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-logo {
-            font-size: 2rem;
-            font-weight: 900;
-            background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            cursor: pointer;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 1.5rem;
-            align-items: center;
-        }
-
-        .nav-links a.nav-link {
-            color: white;
-            text-decoration: none;
-            font-size: 1.1rem;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            transition: all 0.3s ease;
-        }
-
-        .nav-links a.nav-link:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .nav-links .auth-button {
-            background: white;
-            color: var(--primary);
-            border: none;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            padding: 0.6rem 1.5rem;
-            border-radius: 30px;
-            transition: all 0.3s;
-            margin-left: 0.5rem;
-        }
-
-        .nav-links .auth-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .dashboard-tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .tab-button {
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            padding: 0.75rem 1.25rem;
-            border-radius: 8px 8px 0 0;
-            transition: all 0.2s ease;
-            position: relative;
-            margin: 0;
-            white-space: nowrap;
-            outline: none;
-        }
-
-        .tab-button:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
-        }
-
-        .tab-button:focus-visible {
-            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
-            z-index: 1;
-        }
-
-        .tab-button.active {
-            color: white;
-            font-weight: 600;
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .tab-button.active::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: white;
-            border-radius: 3px 3px 0 0;
-        }
-
-        /* Focus styles for keyboard navigation */
-        .tab-button:focus:not(:focus-visible) {
-            outline: none;
-        }
-        
-        .tab-button[aria-selected="true"] {
-            color: white;
-            font-weight: 600;
-        }
-        
-        .tab-button[aria-selected="true"]::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: white;
-            border-radius: 3px 3px 0 0;
-        }
-
-        .dashboard-tab {
-            display: none;
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-            padding: 1.5rem 0;
-        }
-
-        .dashboard-tab.active {
-            display: block;
-            opacity: 1;
-        }
-
-        /* Loading spinner */
-        .loading-spinner {
-            display: inline-block;
-            width: 1em;
-            height: 1em;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 0.6s linear infinite;
-            margin-right: 0.5em;
-            vertical-align: middle;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Responsive styles for dashboard tabs */
-        @media (max-width: 768px) {
+            :root {
+                --primary: #4F46E5;
+                --primary-dark: #4338CA;
+                --secondary: #7C3AED;
+                --accent: #8B5CF6;
+                --text: #1F2937;
+                --text-light: #6B7280;
+                --background: #F9FAFB;
+                --navbar-height: 80px;
+            }
+    
+            body {
+                background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+                min-height: 100vh;
+                color: white;
+                line-height: 1.6;
+                overflow-x: hidden;
+                position: relative;
+            }
+    
+            /* Navigation */
+            .nav {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                padding: 1rem 2rem;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+                max-width: 1400px;
+                margin: 0 auto;
+                border-radius: 0 0 20px 20px;
+                height: var(--navbar-height);
+            }
+    
+            .nav-logo {
+                font-size: 2rem;
+                font-weight: 900;
+                background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
+                background-clip: text;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                cursor: pointer;
+            }
+    
+            .nav-links {
+                display: flex;
+                align-items: center;
+                gap: 2rem;
+            }
+    
+            .nav-links a {
+                color: rgba(255, 255, 255, 0.9);
+                text-decoration: none;
+                font-weight: 500;
+                font-size: 1.1rem;
+                transition: all 0.3s ease;
+                padding: 0.5rem 1rem;
+                border-radius: 8px;
+            }
+    
+            .nav-links a:hover {
+                background: rgba(255, 255, 255, 0.1);
+                transform: translateY(-2px);
+            }
+    
+            /* Sections */
+            .section {
+                display: none !important;
+                min-height: 60vh;
+                align-items: center;
+                justify-content: flex-start;
+                flex-direction: column;
+                padding-top: var(--navbar-height);
+                overflow-y: auto;
+            }
+            .section.active {
+                display: flex !important;
+            }
+            #hero.section.active {
+                min-height: calc(100vh - var(--navbar-height));
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                display: flex !important;
+                padding-top: 0;
+            }
+    
+            /* Hero Section - needs full height centering */
+            #hero {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 0 2rem;
+                min-height: calc(100vh - var(--navbar-height));
+                padding-top: 5rem;
+            }
+    
+            /* Other sections with auto height */
+            #features, #how-it-works, #pricing, #auth, #scholarship-form, #dashboard {
+                min-height: auto;
+                padding: 0;
+            }
+    
+            #hero h1 {
+                font-size: 3.5rem;
+                font-weight: 900;
+                margin-bottom: 1.5rem;
+                line-height: 1.2;
+            }
+    
+            #hero p {
+                font-size: 1.5rem;
+                margin-bottom: 2.5rem;
+                color: rgba(255, 255, 255, 0.9);
+            }
+    
+            /* Buttons */
+            .btn {
+                padding: 1.1rem 2.5rem;
+                border-radius: 50px;
+                font-weight: 700;
+                font-size: 1.15rem;
+                letter-spacing: 0.02em;
+                box-shadow: 0 2px 8px rgba(79,70,229,0.10);
+            }
+    
+            .btn-primary {
+                background: white;
+                color: var(--primary);
+            }
+    
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            }
+    
+            .btn-secondary {
+                background: transparent;
+                color: white;
+                border: 2px solid white;
+            }
+    
+            .btn-secondary:hover {
+                background: rgba(255, 255, 255, 0.1);
+            }
+    
+            /* Auth Forms */
+            .auth-container {
+                max-width: 420px;
+                margin: 6rem auto 0 auto;
+                background: rgba(255, 255, 255, 0.18);
+                backdrop-filter: blur(18px);
+                border-radius: 24px;
+                padding: 2.5rem 2rem 2rem 2rem;
+                border: 1.5px solid rgba(255, 255, 255, 0.22);
+                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
+            }
+    
+            .auth-tabs {
+                display: flex;
+                gap: 1rem;
+                margin-bottom: 2rem;
+                justify-content: center;
+                background: rgba(255,255,255,0.10);
+                border-radius: 16px;
+                padding: 0.5rem;
+            }
+    
+            .auth-tab {
+                flex: 1;
+                padding: 1rem 0;
+                background: none;
+                border: none;
+                color: rgba(255,255,255,0.8);
+                font-size: 1.15rem;
+                font-weight: 700;
+                border-radius: 12px;
+                cursor: pointer;
+                transition: background 0.2s, color 0.2s;
+            }
+    
+            .auth-tab.active {
+                background: linear-gradient(135deg, var(--primary), var(--secondary));
+                color: #fff;
+                box-shadow: 0 2px 8px rgba(79,70,229,0.10);
+            }
+    
+            .auth-form-container {
+                margin-top: 1rem;
+            }
+    
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                width: 100%;
+                padding: 1.1rem 1.2rem;
+                background: rgba(255,255,255,0.18);
+                border: 1.5px solid rgba(255,255,255,0.22);
+                border-radius: 12px;
+                color: #fff;
+                font-size: 1.1rem;
+                margin-bottom: 1.2rem;
+                transition: border 0.2s, background 0.2s;
+            }
+    
+            .form-group input:focus,
+            .form-group select:focus,
+            .form-group textarea:focus {
+                outline: none;
+                border: 1.5px solid var(--primary);
+                background: rgba(255,255,255,0.28);
+            }
+    
+            /* Features Grid */
+            .features-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 2rem;
+                max-width: 1200px;
+                margin: 3rem auto;
+            }
+    
+            .feature-card {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border-radius: 16px;
+                padding: 3rem 2.5rem;
+                text-align: center;
+                transition: all 0.4s ease;
+                border: 1px solid rgba(255, 255, 255, 0.15);
+            }
+    
+            .feature-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            }
+    
+            .feature-icon {
+                width: 80px;
+                height: 80px;
+                background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 2rem;
+                font-size: 2rem;
+            }
+    
+            /* Dashboard */
             .dashboard-tabs {
-                overflow-x: auto;
-                padding-bottom: 0;
-                -webkit-overflow-scrolling: touch;
-                scrollbar-width: none;
-                margin-left: -1rem;
-                margin-right: -1rem;
-                padding-left: 1rem;
-                padding-right: 1rem;
+                display: flex;
+                gap: 1rem;
+                margin-bottom: 2rem;
+                border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+                padding-bottom: 1rem;
             }
-            
-            .dashboard-tabs::after {
+    
+            .tab-button {
+                padding: 0.8rem 1.5rem;
+                background: none;
+                border: none;
+                color: rgba(255, 255, 255, 0.7);
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                position: relative;
+                font-size: 1rem;
+            }
+    
+            .tab-button.active {
+                color: white;
+            }
+    
+            .tab-button.active::after {
                 content: '';
-                flex: 0 0 1rem;
+                position: absolute;
+                bottom: -1rem;
+                left: 0;
+                width: 100%;
+                height: 3px;
+                background: white;
             }
-            
-            .dashboard-tabs::-webkit-scrollbar {
+    
+            .dashboard-tab {
                 display: none;
             }
-            
-            .tab-button {
-                padding: 0.6rem 1rem;
-                font-size: 0.95rem;
-                flex-shrink: 0;
+    
+            .dashboard-tab.active {
+                display: block;
+                animation: fadeIn 0.3s ease-out;
             }
-            
-            .dashboard-content {
-                margin-left: -1rem;
-                margin-right: -1rem;
-                padding: 1rem;
+    
+            /* Scholarship Cards */
+            .scholarship-card {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border-radius: 16px;
+                padding: 1.5rem;
+                margin-bottom: 1rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                transition: all 0.3s;
+                border: 1px solid rgba(255, 255, 255, 0.15);
             }
-        }
-
-        .nav-links button {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            font-weight: 600;
-            cursor: pointer;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            transition: all 0.3s;
-            position: relative;
-        }
-
-        .nav-links button::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 0;
-            height: 2px;
-            background: white;
-            transition: all 0.3s;
-            transform: translateX(-50%);
-        }
-
-        .nav-links button:hover::after {
-            width: 80%;
-        }
-
-        #authButton {
-            background: white;
-            color: var(--primary);
-            padding: 1rem 2rem;
-            border-radius: 100px;
-            font-size: 1.2rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s;
-        }
-
-        #authButton:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        #authButton.signout {
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid white;
-            color: white;
-        }
-        /* Main Content */
-main {
-    padding: 7rem 2rem 4rem;
-    max-width: 1200px;
-    margin: 0 auto;
-    min-height: calc(100vh - 4rem);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.section {
-    display: none;
-    opacity: 0;
-    transition: opacity 0.3s ease-in-out;
-    min-height: 70vh;
-    padding: 2rem 0;
-}
-
-.section.active {
-    display: block;
-    opacity: 1;
-}
-
-/* Ensure the hero section takes full viewport height */
-#hero {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-height: calc(100vh - 8rem);
-    padding: 4rem 0;
-}
-
-/* Add some spacing between sections */
-#features, #how-it-works, #pricing, #signup, #login {
-    padding: 5rem 0;
-}
-
-/* Hero Section */
-#hero {
-    text-align: center;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 2rem 0;
-}
-
-#hero h1 {
-    font-size: 3.5rem;
-    font-weight: 900;
-    margin-bottom: 1.5rem;
-    line-height: 1.2;
-    background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-#hero p {
-    font-size: 1.5rem;
-    margin-bottom: 2.5rem;
-    color: rgba(255, 255, 255, 0.9);
-    max-width: 700px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* Buttons */
-.cta-button {
-    background: white;
-    color: var(--primary);
-    border: none;
-    padding: 1rem 2.5rem;
-    font-size: 1.2rem;
-    font-weight: 700;
-    border-radius: 100px;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.cta-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-.cta-button.secondary {
-    background: transparent;
-    color: white;
-    border: 2px solid white;
-    margin-left: 1rem;
-}
-
-/* Forms */
-.auth-form {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    padding: 2.5rem;
-    max-width: 500px;
-    margin: 3rem auto;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: white;
-}
-
-.form-control {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    font-size: 1rem;
-    transition: all 0.3s;
-}
-
-.form-control:focus {
-    outline: none;
-    border-color: white;
-    background: rgba(255, 255, 255, 0.15);
-}
-
-/* Dashboard */
-.dashboard {
-    display: grid;
-    grid-template-columns: 250px 1fr;
-    gap: 2rem;
-    min-height: calc(100vh - 8rem);
-}
-
-.sidebar {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 1.5rem;
-    backdrop-filter: blur(10px);
-}
-
-.dashboard-content {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 2rem;
-    backdrop-filter: blur(10px);
-}
-
-/* Cards */
-.card {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    transition: all 0.3s;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .nav-links {
-        display: none;
-    }
     
-    .dashboard {
-        grid-template-columns: 1fr;
-    }
+            .scholarship-card:hover {
+                transform: translateY(-2px);
+                border-color: rgba(255, 255, 255, 0.3);
+            }
     
-    #hero h1 {
-        font-size: 2.5rem;
-    }
+            .scholarship-info h3 {
+                font-size: 1.3rem;
+                margin-bottom: 0.5rem;
+            }
     
-    #hero p {
-        font-size: 1.2rem;
-    }
-}
-
-/* Animations */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Utility Classes */
-.text-center { text-align: center; }
-.mt-1 { margin-top: 0.5rem; }
-.mt-2 { margin-top: 1rem; }
-.mt-3 { margin-top: 1.5rem; }
-.mt-4 { margin-top: 2rem; }
-.mb-1 { margin-bottom: 0.5rem; }
-.mb-2 { margin-bottom: 1rem; }
-.mb-3 { margin-bottom: 1.5rem; }
-.mb-4 { margin-bottom: 2rem; }
-</style>
-</head>
-<body>
-    <!-- Floating Circles -->
-    <div class="floating-circles" id="floatingCircles">
-        <!-- Circles will be added by JavaScript -->
-    </div>
-
-    <!-- Navigation -->
-    <nav class="nav">
-        <div class="nav-logo">ScholarAI</div>
-        <div class="nav-links">
-            <a href="#" class="nav-link" data-section="features">Features</a>
-            <a href="#" class="nav-link" data-section="how-it-works">How It Works</a>
-            <a href="#" class="nav-link" data-section="pricing">Pricing</a>
-            <a href="#" class="nav-link" data-section="dashboard" style="display: none;">Dashboard</a>
-            <button id="authButton" class="auth-button">Sign In</button>
+            .scholarship-action {
+                text-align: right;
+            }
+    
+            .amount {
+                font-size: 1.5rem;
+                font-weight: 700;
+                margin-bottom: 0.5rem;
+            }
+    
+            .auto-apply-btn {
+                padding: 0.8rem 2rem;
+                background: #4F46E5;
+                border: none;
+                border-radius: 100px;
+                color: white;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+    
+            .auto-apply-btn:hover {
+                background: #4338CA;
+                transform: translateY(-2px);
+            }
+    
+            .auto-apply-btn:disabled {
+                background: #6B7280;
+                cursor: not-allowed;
+            }
+    
+            /* Loading Spinner */
+            .spinner {
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                border: 3px solid rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                border-top-color: white;
+                animation: spin 1s ease-in-out infinite;
+            }
+    
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+    
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+    
+            /* Success Message */
+            .success-message {
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                background: #4ADE80;
+                color: white;
+                padding: 1rem 2rem;
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                display: none;
+                animation: slideIn 0.3s ease-out;
+                z-index: 1001;
+            }
+    
+            @keyframes slideIn {
+                from { transform: translateX(100%); }
+                to { transform: translateX(0); }
+            }
+    
+            /* Form Progress Styles */
+            .progress-step {
+                width: 40px;
+                height: 40px;
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                position: relative;
+                z-index: 1;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+    
+            .progress-step.active {
+                background: white;
+                color: var(--primary);
+            }
+    
+            .progress-step.completed {
+                background: #4ADE80;
+                color: white;
+            }
+    
+            .form-step {
+                display: none;
+                animation: fadeIn 0.3s ease-out;
+            }
+    
+            .form-step.active {
+                display: block;
+            }
+    
+            /* Word count styling */
+            textarea {
+                resize: vertical;
+                min-height: 100px;
+            }
+    
+            /* Checkbox styling */
+            input[type="checkbox"] {
+                width: 20px;
+                height: 20px;
+                cursor: pointer;
+            }
+    
+            /* Responsive */
+            @media (max-width: 768px) {
+                .nav-links {
+                    gap: 1rem;
+                }
+                
+                #hero h1 {
+                    font-size: 2.5rem;
+                }
+                
+                .features-grid {
+                    grid-template-columns: 1fr;
+                }
+                
+                .dashboard-tabs {
+                    overflow-x: auto;
+                    -webkit-overflow-scrolling: touch;
+                }
+            }
+    
+            /* Floating circles */
+            .floating-circles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: -1; pointer-events: none; }
+            .circle { position: absolute; background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); border-radius: 50%; animation: float 15s infinite; }
+            .circle:nth-child(1) { width: 300px; height: 300px; top: 10%; left: 10%; animation-delay: 0s; }
+            .circle:nth-child(2) { width: 200px; height: 200px; top: 60%; right: 15%; animation-delay: -5s; }
+            .circle:nth-child(3) { width: 150px; height: 150px; top: 30%; right: 30%; animation-delay: -2s; }
+            .circle:nth-child(4) { width: 100px; height: 100px; bottom: 20%; left: 20%; animation-delay: -7s; }
+            @keyframes float { 0%,100%{transform:translate(0,0) rotate(0deg);} 25%{transform:translate(50px,50px) rotate(90deg);} 50%{transform:translate(0,100px) rotate(180deg);} 75%{transform:translate(-50px,50px) rotate(270deg);} }
+    
+            .section h2 {
+                margin-top: calc(var(--navbar-height) + 3rem);
+                margin-bottom: 2rem;
+                font-size: 2.5rem;
+                text-align: center;
+                z-index: 1;
+            }
+    
+            .steps-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 2.5rem;
+                width: 100%;
+                max-width: 1000px;
+                margin: 0 auto;
+                margin-bottom: 2rem;
+            }
+            .step h3 {
+                font-size: 2rem;
+                font-weight: 800;
+                margin-bottom: 1.2rem;
+                color: #fff;
+            }
+            .step p {
+                font-size: 1.25rem;
+                color: rgba(255,255,255,0.95);
+            }
+            @media (max-width: 900px) {
+                .steps-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+            .step {
+                background: rgba(255, 255, 255, 0.15);
+                backdrop-filter: blur(12px);
+                border-radius: 20px;
+                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
+                padding: 2.5rem 2rem 2rem 2rem;
+                text-align: center;
+                border: 1.5px solid rgba(255,255,255,0.18);
+                position: relative;
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
+            .step:hover {
+                transform: translateY(-6px) scale(1.03);
+                box-shadow: 0 16px 40px 0 rgba(31, 38, 135, 0.18);
+            }
+            .step::before {
+                content: counter(step);
+                counter-increment: step;
+                position: absolute;
+                top: -30px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 56px;
+                height: 56px;
+                background: linear-gradient(135deg, var(--primary), var(--secondary));
+                color: #fff;
+                font-size: 2rem;
+                font-weight: 800;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 4px 16px rgba(79,70,229,0.12);
+                z-index: 2;
+                border: 3px solid #fff2;
+            }
+            .steps-grid { counter-reset: step; }
+    
+            .pricing-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+                gap: 2.5rem;
+                width: 100%;
+                max-width: 1000px;
+                margin: 0 auto;
+                margin-bottom: 2rem;
+            }
+            .pricing-card {
+                background: rgba(255, 255, 255, 0.15);
+                backdrop-filter: blur(12px);
+                border-radius: 24px;
+                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
+                padding: 2.5rem 2rem 2rem 2rem;
+                text-align: center;
+                border: 1.5px solid rgba(255,255,255,0.18);
+                position: relative;
+                transition: transform 0.2s, box-shadow 0.2s, border 0.2s;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .pricing-card.popular {
+                border: 2.5px solid var(--accent);
+                transform: scale(1.04);
+                box-shadow: 0 16px 40px 0 rgba(139,92,246,0.18);
+                z-index: 2;
+            }
+            .pricing-card h3 {
+                font-size: 2rem;
+                font-weight: 800;
+                margin-bottom: 1rem;
+                color: #fff;
+            }
+            .pricing-card .price {
+                font-size: 2.5rem;
+                font-weight: 900;
+                color: #fff;
+                margin: 1.5rem 0 1rem 0;
+            }
+            .pricing-card .description {
+                font-size: 1.1rem;
+                color: rgba(255,255,255,0.9);
+                margin-bottom: 1.5rem;
+            }
+            .pricing-card ul {
+                list-style: none;
+                padding: 0;
+                margin: 1.5rem 0 2rem 0;
+                color: #fff;
+                font-size: 1.1rem;
+            }
+            .pricing-card ul li {
+                margin-bottom: 1rem;
+                padding-left: 1.5rem;
+                position: relative;
+                text-align: left;
+            }
+            .pricing-card ul li::before {
+                content: '✓';
+                position: absolute;
+                left: 0;
+                color: var(--accent);
+                font-weight: bold;
+            }
+            .pricing-btn {
+                padding: 1.1rem 2.5rem;
+                border-radius: 50px;
+                font-weight: 700;
+                font-size: 1.15rem;
+                letter-spacing: 0.02em;
+                box-shadow: 0 2px 8px rgba(79,70,229,0.10);
+                border: none;
+                margin-top: auto;
+                background: linear-gradient(135deg, var(--primary), var(--secondary));
+                color: #fff;
+                transition: background 0.2s, transform 0.2s;
+                cursor: pointer;
+            }
+            .pricing-btn.free {
+                background: rgba(255,255,255,0.18);
+                color: var(--primary);
+                border: 1.5px solid var(--primary);
+            }
+            .pricing-btn:hover {
+                background: linear-gradient(135deg, var(--secondary), var(--primary));
+                transform: translateY(-2px) scale(1.04);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="floating-circles">
+            <div class="circle"></div>
+            <div class="circle"></div>
+            <div class="circle"></div>
+            <div class="circle"></div>
         </div>
-    </nav>
-
-    <!-- Main Content Sections -->
-    <main>
+        <!-- Navigation -->
+        <nav class="nav">
+            <div class="nav-logo" onclick="handleLogoClick()">ScholarAI</div>
+            <div class="nav-links">
+                <a href="#" onclick="showSection('features'); return false;">Features</a>
+                <a href="#" onclick="showSection('how-it-works'); return false;">How It Works</a>
+                <a href="#" onclick="showSection('pricing'); return false;">Pricing</a>
+                <div id="authButtons">
+                    <button id="loginBtn" class="btn btn-secondary" onclick="showAuth('login')">Sign In</button>
+                    <button id="signupBtn" class="btn btn-primary" onclick="showAuth('signup')">Sign Up</button>
+                    <button id="dashboardBtn" class="btn btn-secondary" style="display: none;" onclick="showSection('dashboard')">Dashboard</button>
+                    <button id="logoutBtn" class="btn btn-secondary" style="display: none;" onclick="handleLogout()">Sign Out</button>
+                </div>
+            </div>
+        </nav>
+    
+        <!-- Success Message -->
+        <div id="successMessage" class="success-message"></div>
+    
         <!-- Hero Section -->
         <section id="hero" class="section active">
             <h1>Transform Your Scholarship Journey</h1>
-            <p>Let AI help you find and apply for scholarships that match your profile</p>
-            <button class="cta-button" onclick="showSection('signup')">Get Started</button>
+            <p>Let AI streamline your application process and increase your chances of success</p>
+            <button class="btn btn-primary" onclick="showAuth('signup')">Get Started</button>
         </section>
-
-        <!-- More sections will be added here -->
-         <!-- Features Section -->
-<section id="features" class="section">
-    <h2 class="text-center mb-4">Powerful Features</h2>
-    <div class="features-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 3rem;">
-        <div class="card">
-            <h3>Smart Matching</h3>
-            <p>Our AI matches you with scholarships that fit your unique profile and qualifications.</p>
-        </div>
-        <div class="card">
-            <h3>Auto-Apply</h3>
-            <p>Automatically apply to multiple scholarships with just one click.</p>
-        </div>
-        <div class="card">
-            <h3>Progress Tracking</h3>
-            <p>Track your scholarship applications and deadlines in one place.</p>
-        </div>
-    </div>
-</section>
-
-<!-- How It Works Section -->
-<section id="how-it-works" class="section">
-    <h2 class="text-center mb-4">How It Works</h2>
-    <div class="steps" style="max-width: 800px; margin: 0 auto;">
-        <div class="step" style="display: flex; align-items: flex-start; margin-bottom: 2rem;">
-            <div class="step-number" style="background: white; color: var(--primary); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1rem; flex-shrink: 0;">1</div>
-            <div>
-                <h3>Create Your Profile</h3>
-                <p>Tell us about your academic achievements, extracurriculars, and background.</p>
-            </div>
-        </div>
-        <div class="step" style="display: flex; align-items: flex-start; margin-bottom: 2rem;">
-            <div class="step-number" style="background: white; color: var(--primary); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1rem; flex-shrink: 0;">2</div>
-            <div>
-                <h3>Get Matched</h3>
-                <p>Our AI will find scholarships that match your profile.</p>
-            </div>
-        </div>
-        <div class="step" style="display: flex; align-items: flex-start;">
-            <div class="step-number" style="background: white; color: var(--primary); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1rem; flex-shrink: 0;">3</div>
-            <div>
-                <h3>Apply & Win</h3>
-                <p>Apply with a single click and track your applications.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Pricing Section -->
-<section id="pricing" class="section">
-    <h2 class="text-center mb-4">Simple, Transparent Pricing</h2>
-    <div class="pricing-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 3rem;">
-        <div class="card" style="text-align: center;">
-            <h3>Free</h3>
-            <p class="price" style="font-size: 2.5rem; font-weight: 900; margin: 1rem 0;">$0<span style="font-size: 1rem; font-weight: normal; opacity: 0.8;">/month</span></p>
-            <ul style="text-align: left; list-style: none; padding: 0; margin: 2rem 0;">
-                <li>✓ Access to basic scholarships</li>
-                <li>✓ 5 applications per month</li>
-                <li>✓ Basic matching</li>
-            </ul>
-            <button class="cta-button secondary" style="width: 100%;">Get Started</button>
-        </div>
-        <div class="card" style="text-align: center; border: 2px solid var(--accent); position: relative;">
-            <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; padding: 0.25rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600;">MOST POPULAR</div>
-            <h3>Premium</h3>
-            <p class="price" style="font-size: 2.5rem; font-weight: 900; margin: 1rem 0;">$9.99<span style="font-size: 1rem; font-weight: normal; opacity: 0.8;">/month</span></p>
-            <ul style="text-align: left; list-style: none; padding: 0; margin: 2rem 0;">
-                <li>✓ Unlimited applications</li>
-                <li>✓ Advanced AI matching</li>
-                <li>✓ Priority support</li>
-                <li>✓ Exclusive scholarships</li>
-            </ul>
-            <button class="cta-button" style="width: 100%;">Start Free Trial</button>
-        </div>
-    </div>
-</section>
-
-<!-- Sign Up / Sign In Forms -->
-<section id="signup" class="section">
-    <div class="auth-form">
-        <h2 class="text-center mb-4">Create Your Account</h2>
-        <form id="signupForm">
-            <div class="form-group">
-                <label for="name">Full Name</label>
-                <input type="text" id="name" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" class="form-control" required minlength="8">
-            </div>
-            <button type="submit" class="cta-button" style="width: 100%;">Sign Up</button>
-            <p class="text-center mt-2">Already have an account? <a href="#" onclick="toggleLogin()" style="color: white; text-decoration: underline;">Sign In</a></p>
-        </form>
-    </div>
-</section>
-
-<section id="login" class="section">
-    <div class="auth-form">
-        <h2 class="text-center mb-4">Welcome Back</h2>
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="loginEmail">Email</label>
-                <input type="email" id="loginEmail" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="loginPassword">Password</label>
-                <input type="password" id="loginPassword" class="form-control" required>
-            </div>
-            <button type="submit" class="cta-button" style="width: 100%;">Sign In</button>
-            <p class="text-center mt-2">Don't have an account? <a href="#" onclick="toggleSignup()" style="color: white; text-decoration: underline;">Sign Up</a></p>
-        </form>
-    </div>
-</section>
-
-<!-- Dashboard (initially hidden) -->
-<section id="dashboard" class="section">
-    <div class="dashboard">
-        <div class="sidebar">
-            <h3>Menu</h3>
-            <ul style="list-style: none; padding: 0; margin-top: 1.5rem;">
-                <li style="margin-bottom: 1rem;"><a href="#" onclick="showDashboardTab('overview')" style="color: white; text-decoration: none;">Overview</a></li>
-                <li style="margin-bottom: 1rem;"><a href="#" onclick="showDashboardTab('scholarships')" style="color: white; text-decoration: none;">Scholarships</a></li>
-                <li style="margin-bottom: 1rem;"><a href="#" onclick="showDashboardTab('applications')" style="color: white; text-decoration: none;">My Applications</a></li>
-                <li><a href="#" onclick="showDashboardTab('profile')" style="color: white; text-decoration: none;">Profile</a></li>
-            </ul>
-        </div>
-        <div class="dashboard-content">
-            <div id="overview" class="dashboard-tab active">
-                <h2>Welcome back, <span id="userName">Student</span>!</h2>
-                <div class="stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
-                    <div class="card">
-                        <h3>Scholarships Found</h3>
-                        <p class="stat-number" style="font-size: 2.5rem; font-weight: 900; margin: 0.5rem 0 0; color: var(--accent);">24</p>
-                    </div>
-                    <div class="card">
-                        <h3>Applications</h3>
-                        <p class="stat-number" style="font-size: 2.5rem; font-weight: 900; margin: 0.5rem 0 0; color: var(--accent);">8</p>
-                    </div>
-                    <div class="card">
-                        <h3>Awarded</h3>
-                        <p class="stat-number" style="font-size: 2.5rem; font-weight: 900; margin: 0.5rem 0 0; color: var(--accent);">$2,500</p>
-                    </div>
+    
+        <!-- Auth Section -->
+        <section id="auth" class="section">
+            <div class="auth-container">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" onclick="switchAuthTab('signin')">Sign In</button>
+                    <button class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button>
                 </div>
-                <h3>Recommended Scholarships</h3>
-                <div class="scholarship-list" style="margin-top: 1.5rem;">
-                    <!-- Scholarship items will be dynamically added here -->
+    
+                <div id="signin-form" class="auth-form-container">
+                    <form onsubmit="handleSignIn(event)">
+                        <div class="form-group">
+                            <label for="signin-email">Email</label>
+                            <input type="email" id="signin-email" placeholder="Enter your email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signin-password">Password</label>
+                            <input type="password" id="signin-password" placeholder="Enter your password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
+                    </form>
+                </div>
+    
+                <div id="signup-form" class="auth-form-container" style="display: none;">
+                    <form onsubmit="handleSignUp(event)">
+                        <div class="form-group">
+                            <label for="signup-name">Full Name</label>
+                            <input type="text" id="signup-name" placeholder="Enter your full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signup-email">Email</label>
+                            <input type="email" id="signup-email" placeholder="Enter your email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signup-password">Password</label>
+                            <input type="password" id="signup-password" placeholder="Create a password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Create Account</button>
+                    </form>
                 </div>
             </div>
-            <div id="scholarships" class="dashboard-tab" style="display: none;">
-                <h2>Available Scholarships</h2>
-                <div class="scholarship-filters" style="margin: 1.5rem 0; display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <input type="text" placeholder="Search scholarships..." class="form-control" style="flex: 1; min-width: 200px; max-width: 400px;">
-                    <select class="form-control" style="width: 200px;">
-                        <option>Filter by amount</option>
-                        <option>Under $1,000</option>
-                        <option>$1,000 - $5,000</option>
-                        <option>Over $5,000</option>
-                    </select>
+        </section>
+    
+        <!-- Features Section -->
+        <section id="features" class="section">
+            <h2>Powerful Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Smart Matching</h3>
+                    <p>Our AI matches you with scholarships that fit your unique profile and qualifications.</p>
                 </div>
-                <div class="scholarship-list">
-                    <!-- Scholarship items will be dynamically added here -->
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Auto-Apply</h3>
+                    <p>Automatically apply to multiple scholarships with just one click.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Progress Tracking</h3>
+                    <p>Track your scholarship applications and deadlines in one place.</p>
                 </div>
             </div>
-            <div id="applications" class="dashboard-tab" style="display: none;">
-                <h2>My Applications</h2>
-                <div class="application-list" style="margin-top: 1.5rem;">
-                    <!-- Application items will be dynamically added here -->
+        </section>
+    
+        <!-- How It Works Section -->
+        <section id="how-it-works" class="section">
+            <h2>How It Works</h2>
+            <div class="steps-grid">
+                <div class="step">
+                    <h3>Create Your Profile</h3>
+                    <p>Tell us about your academic achievements, extracurriculars, and background.</p>
+                </div>
+                <div class="step">
+                    <h3>Get Matched</h3>
+                    <p>Our AI will find scholarships that match your profile.</p>
+                </div>
+                <div class="step">
+                    <h3>Apply & Win</h3>
+                    <p>Apply with a single click and track your applications.</p>
                 </div>
             </div>
-            <div id="profile" class="dashboard-tab" style="display: none;">
-                <h2>My Profile</h2>
-                <form id="profileForm" style="margin-top: 1.5rem;">
-                    <div class="form-group">
-                        <label>Full Name</label>
-                        <input type="text" class="form-control" value="John Doe">
-                    </div>
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" class="form-control" value="john@example.com" disabled>
-                    </div>
-                    <div class="form-group">
-                        <label>Education Level</label>
-                        <select class="form-control">
-                            <option>High School</option>
-                            <option selected>Undergraduate</option>
-                            <option>Graduate</option>
-                            <option>PhD</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="cta-button">Save Changes</button>
-                </form>
+        </section>
+    
+        <!-- Pricing Section -->
+        <section id="pricing" class="section">
+            <h2>Simple, Transparent Pricing</h2>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Free</h3>
+                    <div class="price">$0<span>/month</span></div>
+                    <div class="description">Access to basic scholarships, 5 applications per month, basic matching.</div>
+                    <ul>
+                        <li>Access to basic scholarships</li>
+                        <li>5 applications per month</li>
+                        <li>Basic matching</li>
+                    </ul>
+                    <button class="pricing-btn free">Get Started</button>
+                </div>
+                <div class="pricing-card popular">
+                    <h3>Premium</h3>
+                    <div class="price">$9.99<span>/month</span></div>
+                    <div class="description">Unlimited applications, advanced AI matching, priority support, exclusive scholarships.</div>
+                    <ul>
+                        <li>Unlimited applications</li>
+                        <li>Advanced AI matching</li>
+                        <li>Priority support</li>
+                        <li>Exclusive scholarships</li>
+                    </ul>
+                    <button class="pricing-btn pro">Start Free Trial</button>
+                </div>
             </div>
-        </div>
-    </div>
-</section>
-    </main>
-
-    <script>
-        // Initialize global variables
-let authButton, signupForm, loginForm, profileForm;
-let isAuthenticated = false;
-let currentUser = null;
-
-// Sample data
-const sampleScholarships = [
-    {
-        id: 1,
-        title: "Academic Excellence Scholarship",
-        amount: 5000,
-        deadline: "2023-12-31",
-        description: "Awarded to students with outstanding academic achievements.",
-        requirements: ["3.5+ GPA", "Full-time student", "Personal statement required"]
-    },
-    {
-        id: 2,
-        title: "STEM Innovation Award",
-        amount: 10000,
-        deadline: "2023-11-15",
-        description: "For students pursuing degrees in STEM fields with innovative projects.",
-        requirements: ["STEM major", "Project proposal", "3.0+ GPA"]
-    },
-    {
-        id: 3,
-        title: "Community Service Scholarship",
-        amount: 2500,
-        deadline: "2024-01-15",
-        description: "Awarded to students with a strong record of community service.",
-        requirements: ["100+ volunteer hours", "Two letters of recommendation", "Essay"]
-    }
-];
-
-// Initialize DOM elements after the page loads
-function initializeElements() {
-    authButton = document.getElementById('authButton');
-    signupForm = document.getElementById('signupForm');
-    loginForm = document.getElementById('loginForm');
-    profileForm = document.getElementById('profileForm');
+        </section>
     
-    // Add navigation click handlers
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const section = link.getAttribute('data-section');
-            if (section) {
-                showSection(section);
-            }
-        });
-    });
-}
-
-// Update the authentication button based on login state
-function updateAuthButton() {
-    if (!authButton) return;
-    
-    const token = localStorage.getItem('token');
-    const userData = JSON.parse(localStorage.getItem('userData') || 'null');
-    
-    if (token && userData) {
-        isAuthenticated = true;
-        currentUser = userData;
-        authButton.textContent = 'Sign Out';
-        authButton.classList.add('signed-in');
-        
-        // Update user info in dashboard if visible
-        if (document.getElementById('dashboard').classList.contains('active')) {
-            showDashboardTab('overview');
-        }
-    } else {
-        isAuthenticated = false;
-        currentUser = null;
-        authButton.textContent = 'Sign In';
-        authButton.classList.remove('signed-in');
-    }
-    
-    // Update navigation based on auth state
-    updateNavigation();
-}
-
-// Update navigation based on authentication state
-function updateNavigation() {
-    const navLinks = document.querySelectorAll('.nav-link');
-    const dashboardLink = document.querySelector('[data-section="dashboard"]');
-    
-    navLinks.forEach(link => {
-        if (link.getAttribute('data-section') === 'dashboard') {
-            if (isAuthenticated) {
-                link.style.display = 'inline-block';
-            } else {
-                link.style.display = 'none';
-            }
-        } else {
-            link.style.display = 'inline-block';
-        }
-    });
-}
-
-// Make functions globally available
-window.showSection = showSection;
-window.toggleLogin = function() {
-    showSection('login');
-};
-window.toggleSignup = function() {
-    showSection('signup');
-};
-window.handleLogoClick = function() {
-    showSection('hero');
-};
-
-// Initialize the app when the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize DOM elements
-    initializeElements();
-    
-    // Initialize floating circles
-    createFloatingCircles();
-    
-    // Set up event listeners
-    setupEventListeners();
-    
-    // Check authentication status
-    checkAuthStatus();
-    
-    // Load scholarships
-    loadScholarships();
-    
-    // Make sure the auth button is properly initialized
-    updateAuthButton();
-    
-    // Add click handler for logo
-    const logo = document.querySelector('.nav-logo');
-    if (logo) {
-        logo.addEventListener('click', handleLogoClick);
-        // Make logo focusable for keyboard navigation
-        logo.setAttribute('tabindex', '0');
-        logo.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleLogoClick();
-            }
-        });
-    }
-    
-    // Initialize tab keyboard navigation
-    setupTabNavigation();
-    
-    // Handle initial page load with hash
-    handleInitialHash();
-});
-
-// Handle initial page load with hash
-document.addEventListener('DOMContentLoaded', handleInitialHash);
-window.addEventListener('hashchange', handleInitialHash);
-
-function handleInitialHash() {
-    // If there's a hash in the URL, navigate to that section
-    const hash = window.location.hash;
-    
-    if (hash) {
-        // Check if it's a dashboard tab hash (e.g., #dashboard/overview)
-        const dashboardMatch = hash.match(/^#dashboard\/(\w+)/);
-        
-        if (dashboardMatch) {
-            const tabId = dashboardMatch[1];
-            // Make sure we're on the dashboard section
-            if (!document.getElementById('dashboard').classList.contains('active')) {
-                showSection('dashboard');
-            }
-            // Show the correct tab
-            showDashboardTab(tabId);
-            return;
-        }
-        
-        // Handle other section hashes (e.g., #features, #pricing, etc.)
-        const sectionId = hash.substring(1); // Remove the '#'
-        const section = document.getElementById(sectionId);
-        
-        if (section && section.classList.contains('section')) {
-            showSection(sectionId);
-            return;
-        }
-    }
-    
-    // Default to showing the hero section if no valid hash
-    if (!document.querySelector('.section.active')) {
-        showSection('hero');
-    }
-}
-
-// Set up keyboard navigation for tabs
-function setupTabNavigation() {
-    const tabList = document.querySelector('.dashboard-tabs');
-    if (!tabList) return;
-    
-    const tabs = Array.from(document.querySelectorAll('.tab-button'));
-    if (tabs.length === 0) return;
-    
-    tabList.setAttribute('role', 'tablist');
-    
-    tabs.forEach((tab, index) => {
-        const tabId = tab.getAttribute('data-tab');
-        const panelId = `${tabId}-tab`;
-        
-        tab.setAttribute('role', 'tab');
-        tab.setAttribute('aria-controls', panelId);
-        tab.setAttribute('id', `tab-${tabId}`);
-        
-        const panel = document.getElementById(panelId);
-        if (panel) {
-            panel.setAttribute('role', 'tabpanel');
-            panel.setAttribute('aria-labelledby', `tab-${tabId}`);
-        }
-        
-        // Handle keyboard navigation
-        tab.addEventListener('keydown', (e) => {
-            let nextTab = null;
-            
-            switch (e.key) {
-                case 'ArrowLeft':
-                    nextTab = tabs[index - 1] || tabs[tabs.length - 1];
-                    break;
-                case 'ArrowRight':
-                    nextTab = tabs[index + 1] || tabs[0];
-                    break;
-                case 'Home':
-                    e.preventDefault();
-                    nextTab = tabs[0];
-                    break;
-                case 'End':
-                    e.preventDefault();
-                    nextTab = tabs[tabs.length - 1];
-                    break;
-                default:
-                    return;
-            }
-            
-            if (nextTab) {
-                e.preventDefault();
-                nextTab.focus();
-                const tabId = nextTab.getAttribute('data-tab');
-                showDashboardTab(tabId);
-            }
-        });
-    });
-}
-        
-        // Create floating circles
-        function createFloatingCircles() {
-            const container = document.getElementById('floatingCircles');
-            if (!container) return;
-            
-            // Clear any existing circles
-            container.innerHTML = '';
-            
-            // Create circles
-            for (let i = 0; i < 10; i++) {
-                const circle = document.createElement('div');
-                circle.className = 'circle';
+        <!-- Scholarship Profile Form Section -->
+        <section id="scholarship-form" class="section">
+            <div style="max-width: 800px; margin: 0 auto;">
+                <h2 style="text-align: center; font-size: 2rem; margin-bottom: 1rem;">Complete Your Scholarship Profile</h2>
+                <p style="text-align: center; color: rgba(255, 255, 255, 0.8); margin-bottom: 2rem;">This information will be used to auto-fill your scholarship applications</p>
                 
-                // Random size between 100px and 300px
-                const size = Math.random() * 200 + 100;
+                <div class="form-container" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 2rem; border: 1px solid rgba(255, 255, 255, 0.15);">
+                    <div class="form-progress" style="display: flex; justify-content: space-between; margin-bottom: 2rem; position: relative;">
+                        <div class="progress-line" style="position: absolute; top: 20px; left: 0; right: 0; height: 2px; background: rgba(255, 255, 255, 0.2); z-index: 0;"></div>
+                        <div class="progress-step active" data-step="1">1</div>
+                        <div class="progress-step" data-step="2">2</div>
+                        <div class="progress-step" data-step="3">3</div>
+                        <div class="progress-step" data-step="4">4</div>
+                    </div>
+    
+                    <form id="scholarshipProfileForm" onsubmit="handleProfileSubmit(event)">
+                        <!-- Step 1: Personal Information -->
+                        <div class="form-step active" data-step="1">
+                            <h3 style="margin-bottom: 1.5rem;">Personal Information</h3>
+                            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label>First Name *</label>
+                                    <input type="text" id="firstName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Last Name *</label>
+                                    <input type="text" id="lastName" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Date of Birth *</label>
+                                <input type="date" id="dateOfBirth" required>
+                            </div>
+                            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label>Gender</label>
+                                    <select id="gender">
+                                        <option value="">Select Gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="non-binary">Non-binary</option>
+                                        <option value="prefer-not-to-say">Prefer not to say</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Citizenship Status *</label>
+                                    <select id="citizenship" required>
+                                        <option value="">Select Status</option>
+                                        <option value="us-citizen">US Citizen</option>
+                                        <option value="permanent-resident">Permanent Resident</option>
+                                        <option value="international">International Student</option>
+                                        <option value="daca">DACA</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Ethnicity (Check all that apply)</label>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                                    <label style="display: flex; align-items: center; font-weight: normal;">
+                                        <input type="checkbox" name="ethnicity" value="african-american" style="width: auto; margin-right: 0.5rem;">
+                                        African American/Black
+                                    </label>
+                                    <label style="display: flex; align-items: center; font-weight: normal;">
+                                        <input type="checkbox" name="ethnicity" value="asian" style="width: auto; margin-right: 0.5rem;">
+                                        Asian/Pacific Islander
+                                    </label>
+                                    <label style="display: flex; align-items: center; font-weight: normal;">
+                                        <input type="checkbox" name="ethnicity" value="hispanic" style="width: auto; margin-right: 0.5rem;">
+                                        Hispanic/Latino
+                                    </label>
+                                    <label style="display: flex; align-items: center; font-weight: normal;">
+                                        <input type="checkbox" name="ethnicity" value="native-american" style="width: auto; margin-right: 0.5rem;">
+                                        Native American
+                                    </label>
+                                    <label style="display: flex; align-items: center; font-weight: normal;">
+                                        <input type="checkbox" name="ethnicity" value="white" style="width: auto; margin-right: 0.5rem;">
+                                        White/Caucasian
+                                    </label>
+                                    <label style="display: flex; align-items: center; font-weight: normal;">
+                                        <input type="checkbox" name="ethnicity" value="other" style="width: auto; margin-right: 0.5rem;">
+                                        Other
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Phone Number *</label>
+                                <input type="tel" id="phone" placeholder="(555) 123-4567" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Street Address *</label>
+                                <input type="text" id="address" required>
+                            </div>
+                            <div class="form-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label>City *</label>
+                                    <input type="text" id="city" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>State *</label>
+                                    <input type="text" id="state" maxlength="2" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>ZIP Code *</label>
+                                    <input type="text" id="zipCode" pattern="[0-9]{5}" required>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <!-- Step 2: Academic Information -->
+                        <div class="form-step" data-step="2">
+                            <h3 style="margin-bottom: 1.5rem;">Academic Information</h3>
+                            <div class="form-group">
+                                <label>Current School *</label>
+                                <input type="text" id="school" required>
+                            </div>
+                            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label>School Type *</label>
+                                    <select id="schoolType" required>
+                                        <option value="">Select Type</option>
+                                        <option value="high-school">High School</option>
+                                        <option value="community-college">Community College</option>
+                                        <option value="four-year-college">4-Year College/University</option>
+                                        <option value="graduate-school">Graduate School</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Grade Level/Year *</label>
+                                    <select id="gradeLevel" required>
+                                        <option value="">Select Level</option>
+                                        <option value="hs-freshman">High School Freshman</option>
+                                        <option value="hs-sophomore">High School Sophomore</option>
+                                        <option value="hs-junior">High School Junior</option>
+                                        <option value="hs-senior">High School Senior</option>
+                                        <option value="college-freshman">College Freshman</option>
+                                        <option value="college-sophomore">College Sophomore</option>
+                                        <option value="college-junior">College Junior</option>
+                                        <option value="college-senior">College Senior</option>
+                                        <option value="graduate">Graduate Student</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label>GPA (4.0 scale) *</label>
+                                    <input type="number" id="gpa" step="0.01" min="0" max="4.0" placeholder="3.50" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Expected Graduation Year *</label>
+                                    <input type="number" id="graduationYear" min="2024" max="2030" placeholder="2025" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Intended/Current Major *</label>
+                                <input type="text" id="major" placeholder="e.g., Computer Science" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Minor (if applicable)</label>
+                                <input type="text" id="minor" placeholder="e.g., Mathematics">
+                            </div>
+                            <h4 style="margin-top: 1.5rem; margin-bottom: 1rem;">Test Scores (Optional)</h4>
+                            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label>SAT Total Score</label>
+                                    <input type="number" id="satScore" min="400" max="1600" placeholder="1400">
+                                </div>
+                                <div class="form-group">
+                                    <label>ACT Composite Score</label>
+                                    <input type="number" id="actScore" min="1" max="36" placeholder="32">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Class Rank (if available)</label>
+                                <input type="text" id="classRank" placeholder="e.g., 5 out of 300">
+                            </div>
+                        </div>
+    
+                        <!-- Step 3: Extracurricular & Experience -->
+                        <div class="form-step" data-step="3">
+                            <h3 style="margin-bottom: 1.5rem;">Extracurricular Activities & Experience</h3>
+                            <div class="form-group">
+                                <label>List your extracurricular activities *</label>
+                                <textarea id="activities" rows="4" placeholder="e.g., Student Council President (2023-2024), Debate Team Captain, Volunteer at Local Hospital (100+ hours)" optional></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Leadership Positions</label>
+                                <textarea id="leadership" rows="3" placeholder="Describe any leadership roles you've held"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Work Experience</label>
+                                <textarea id="workExperience" rows="3" placeholder="List any part-time jobs, internships, or work experience"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Awards and Honors *</label>
+                                <textarea id="awards" rows="3" placeholder="e.g., National Honor Society, AP Scholar, Science Fair Winner" optional></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Community Service *</label>
+                                <textarea id="communityService" rows="3" placeholder="Describe your volunteer work and community involvement" optional></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Special Circumstances (Optional)</label>
+                                <textarea id="specialCircumstances" rows="3" placeholder="First-generation college student, financial hardship, unique challenges, etc."></textarea>
+                            </div>
+                        </div>
+    
+                        <!-- Step 4: Essay Questions -->
+                        <div class="form-step" data-step="4">
+                            <h3 style="margin-bottom: 1.5rem;">Common Essay Questions</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1rem;">These essays will be used as templates for scholarship applications</p>
+                            
+                            <div class="form-group">
+                                <label>Why do you deserve this scholarship? (250 words) *</label>
+                                <textarea id="whyDeserving" rows="6" placeholder="Explain why you should receive scholarship funding..." optional></textarea>
+                                <div class="word-count" style="text-align: right; color: rgba(255, 255, 255, 0.6); font-size: 0.9rem;">0/250 words</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>What are your educational and career goals? (250 words) *</label>
+                                <textarea id="careerGoals" rows="6" placeholder="Describe your future academic and professional aspirations..." optional></textarea>
+                                <div class="word-count" style="text-align: right; color: rgba(255, 255, 255, 0.6); font-size: 0.9rem;">0/250 words</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Describe a challenge you've overcome (250 words) *</label>
+                                <textarea id="challengeOvercome" rows="6" placeholder="Share a personal challenge and how you overcame it..." optional></textarea>
+                                <div class="word-count" style="text-align: right; color: rgba(255, 255, 255, 0.6); font-size: 0.9rem;">0/250 words</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>How will this scholarship help you achieve your goals? (150 words) *</label>
+                                <textarea id="scholarshipImpact" rows="4" placeholder="Explain how scholarship funding will impact your education..." optional></textarea>
+                                <div class="word-count" style="text-align: right; color: rgba(255, 255, 255, 0.6); font-size: 0.9rem;">0/150 words</div>
+                            </div>
+                        </div>
+    
+                        <!-- Navigation buttons -->
+                        <div class="form-navigation" style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                            <button type="button" class="btn btn-secondary" onclick="previousStep()" id="prevBtn" style="display: none;">Previous</button>
+                            <button type="button" class="btn btn-primary" onclick="nextStep()" id="nextBtn">Next</button>
+                            <button type="submit" class="btn btn-primary" id="submitBtn" style="display: none;">Complete Profile</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section">
+            <div style="max-width: 1200px; margin: 0 auto;">
+                <h2 style="font-size: 2rem; margin-bottom: 2rem;">Welcome back, <span id="userName">Student</span>!</h2>
+                <div class="dashboard-tabs">
+                    <button class="tab-button active" onclick="switchDashboardTab('scholarships')">Scholarships</button>
+                    <button class="tab-button" onclick="switchDashboardTab('applications')">My Applications</button>
+                    <button class="tab-button" onclick="switchDashboardTab('profile')">Profile</button>
+                </div>
+                <!-- Scholarships Tab -->
+                <div id="scholarships-tab" class="dashboard-tab active">
+                    <div style="margin-bottom: 2rem;">
+                        <input type="text" placeholder="Search scholarships..." style="width: 100%; max-width: 400px; padding: 0.8rem; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 10px; color: white;">
+                    </div>
+                    <div id="scholarshipsList">
+                        <!-- Scholarships will be loaded here -->
+                    </div>
+                </div>
+                <!-- Applications Tab -->
+                <div id="applications-tab" class="dashboard-tab">
+                    <h3>My Applications</h3>
+                    <div id="applicationsList">
+                        <p>No applications yet. Start applying to scholarships!</p>
+                    </div>
+                </div>
+                <!-- Profile Tab -->
+                <div id="profile-tab" class="dashboard-tab">
+                    <h3>My Profile</h3>
+                    <div style="margin-bottom: 1rem;">
+                        <button class="btn btn-primary" onclick="editScholarshipProfile()">Edit Scholarship Profile</button>
+                    </div>
+                    <div id="profileSummary" style="background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 1.5rem; margin-bottom: 2rem;">
+                        <p>Loading profile...</p>
+                    </div>
+                    <!-- Scholarship Profile Form (always visible and editable) -->
+                    <div id="profileFormContainer">
+                        <!-- Move the scholarship profile form here -->
+                        <form id="scholarshipProfileForm" onsubmit="handleProfileSubmit(event)">
+                            <!-- (Insert all form steps/fields here, as in the original scholarship-form section) -->
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    
+        <script>
+            // Global variables
+            let currentUser = null;
+            let isAuthenticated = false;
+            let currentFormStep = 1;
+            const totalSteps = 4;
+    
+            // Sample scholarship data
+            const sampleScholarships = [
+                {
+                    _id: '1',
+                    name: 'STEM Excellence Scholarship',
+                    organization: 'National Science Foundation',
+                    description: 'For students pursuing STEM fields',
+                    amount: 10000,
+                    requirements: ['STEM major', 'GPA 3.5+', 'US Citizen'],
+                    matchScore: 95,
+                    applicationUrl: 'https://example.com/apply'
+                },
+                {
+                    _id: '2',
+                    name: 'Future Leaders Grant',
+                    organization: 'Leadership Foundation',
+                    description: 'Supporting future leaders',
+                    amount: 5000,
+                    requirements: ['Leadership experience', 'Community service'],
+                    matchScore: 85,
+                    applicationUrl: 'https://example.com/apply'
+                },
+                {
+                    _id: '3',
+                    name: 'Arts & Humanities Fellowship',
+                    organization: 'Cultural Arts Society',
+                    description: 'For arts and humanities students',
+                    amount: 7500,
+                    requirements: ['Arts/Humanities major', 'Portfolio submission'],
+                    matchScore: 75,
+                    applicationUrl: 'https://example.com/apply'
+                }
+            ];
+    
+            // Initialize on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                checkAuthStatus();
+            });
+    
+            // Check authentication status
+            function checkAuthStatus() {
+                const token = localStorage.getItem('token');
+                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
                 
-                // Random position
-                const posX = Math.random() * 100;
-                const posY = Math.random() * 100;
+                if (token && userData.email) {
+                    isAuthenticated = true;
+                    currentUser = userData;
+                    updateAuthUI(true);
+                    if (userData.name) {
+                        document.getElementById('userName').textContent = userData.name;
+                    }
+                    
+                    // Initialize form step tracking
+                    const formSteps = document.querySelectorAll('.form-step');
+                    if (formSteps.length > 0) {
+                        currentFormStep = 1;
+                        updateFormNavigation();
+                    }
+                } else {
+                    updateAuthUI(false);
+                }
+            }
+    
+            // Update UI based on authentication
+            function updateAuthUI(isLoggedIn) {
+                const loginBtn = document.getElementById('loginBtn');
+                const signupBtn = document.getElementById('signupBtn');
+                const dashboardBtn = document.getElementById('dashboardBtn');
+                const logoutBtn = document.getElementById('logoutBtn');
                 
-                // Random animation duration between 15s and 30s
-                const duration = Math.random() * 15 + 15;
-                
-                // Apply styles
-                Object.assign(circle.style, {
-                    width: `${size}px`,
-                    height: `${size}px`,
-                    left: `${posX}%`,
-                    top: `${posY}%`,
-                    opacity: Math.random() * 0.1 + 0.05, // Between 0.05 and 0.15
-                    animation: `float ${duration}s infinite`,
-                    animationDelay: `${Math.random() * -20}s` // Start at different times
+                if (isLoggedIn) {
+                    loginBtn.style.display = 'none';
+                    signupBtn.style.display = 'none';
+                    dashboardBtn.style.display = 'inline-block';
+                    logoutBtn.style.display = 'inline-block';
+                } else {
+                    loginBtn.style.display = 'inline-block';
+                    signupBtn.style.display = 'inline-block';
+                    dashboardBtn.style.display = 'none';
+                    logoutBtn.style.display = 'none';
+                }
+            }
+    
+            // Show section
+            function showSection(sectionId) {
+                document.querySelectorAll('.section').forEach(section => {
+                    section.classList.remove('active');
                 });
                 
-                container.appendChild(circle);
+                const targetSection = document.getElementById(sectionId);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                    window.scrollTo(0, 0);
+                    
+                    // Load data if showing dashboard
+                    if (sectionId === 'dashboard' && isAuthenticated) {
+                        loadScholarships();
+                    }
+                }
             }
-        }
-
-// Event Listeners
-function setupEventListeners() {
-    // Form submissions
-    if (signupForm) {
-        signupForm.addEventListener('submit', handleSignup);
-    }
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
-    }
-    if (profileForm) {
-        profileForm.addEventListener('submit', handleProfileUpdate);
-    }
     
-    // Auth button
-    if (authButton) {
-        authButton.addEventListener('click', function(e) {
-            if (isAuthenticated) {
-                handleLogout();
-            } else {
-                showSection('login');
+            // Logo click handler
+            function handleLogoClick() {
+                if (isAuthenticated) {
+                    showSection('dashboard');
+                } else {
+                    showSection('hero');
+                }
             }
-        });
-    }
-}
-
-// Auth Functions
-function checkAuthStatus() {
-    const token = localStorage.getItem('token');
-    if (token) {
-        // In a real app, verify the token with the server
-        const userData = JSON.parse(localStorage.getItem('userData'));
-        if (userData) {
-            isAuthenticated = true;
-            currentUser = userData;
-            updateAuthButton();
-            showSection('dashboard');
-        } else {
-            // Invalid user data, clear auth
-            localStorage.removeItem('token');
-            updateAuthButton();
-        }
-    } else {
-        updateAuthButton();
-    }
-}
-
-function handleSignup(e) {
-    e.preventDefault();
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-
-    // In a real app, this would be an API call
-    const userData = { 
-        id: Date.now().toString(),
-        name, 
-        email, 
-        password,
-        applications: []
-    };
     
-    localStorage.setItem('userData', JSON.stringify(userData));
-    localStorage.setItem('token', 'sample-jwt-token');
-    
-    isAuthenticated = true;
-    currentUser = userData;
-    
-    // Update UI and show success message
-    updateAuthButton();
-    showSection('dashboard');
-    showMessage('Account created successfully!', 'success');
-    
-    // Reset the form
-    if (signupForm) signupForm.reset();
-}
-
-function handleLogin(e) {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-
-    // In a real app, this would be an API call
-    // For demo purposes, we'll create a user if one doesn't exist
-    let userData = JSON.parse(localStorage.getItem('userData'));
-    
-    if (!userData) {
-        // Create a new user if none exists (for demo)
-        userData = { 
-            id: Date.now().toString(),
-            name: email.split('@')[0],
-            email,
-            password,
-            applications: []
-        };
-        localStorage.setItem('userData', JSON.stringify(userData));
-    }
-    
-    localStorage.setItem('token', 'sample-jwt-token');
-    
-    isAuthenticated = true;
-    currentUser = userData;
-    
-    // Update UI and show success message
-    updateAuthButton();
-    showSection('dashboard');
-    showMessage('Logged in successfully!', 'success');
-    
-    // Reset the form
-    if (loginForm) loginForm.reset();
-}
-
-function handleLogout() {
-    // Clear authentication data
-    localStorage.removeItem('token');
-    localStorage.removeItem('userData');
-    isAuthenticated = false;
-    currentUser = null;
-    
-    // Update the UI
-    updateAuthButton();
-    
-    // Show login form if on dashboard, otherwise stay on current page
-    const currentSection = document.querySelector('.section.active');
-    if (currentSection && currentSection.id === 'dashboard') {
-        showSection('login');
-    }
-    
-    showMessage('You have been successfully logged out.', 'success');
-    
-    // Reset forms
-    if (signupForm) signupForm.reset();
-    if (loginForm) loginForm.reset();
-    if (profileForm) profileForm.reset();
-}
-
-function handleProfileUpdate(e) {
-    e.preventDefault();
-    // In a real app, this would update the user's profile via API
-    showMessage('Profile updated successfully!', 'success');
-}
-
-// UI Functions
-function updateUIForAuth(isLoggedIn) {
-    const authBtn = document.getElementById('authButton');
-    if (isLoggedIn) {
-        authBtn.textContent = 'Sign Out';
-        authBtn.classList.add('signout');
-        authBtn.setAttribute('onclick', 'handleLogout()');
-        
-        // Update user info in dashboard
-        if (currentUser && document.getElementById('userName')) {
-            document.getElementById('userName').textContent = currentUser.name;
-        }
-    } else {
-        authBtn.textContent = 'Sign In';
-        authBtn.classList.remove('signout');
-        authBtn.setAttribute('onclick', 'showSection("login")');
-    }
-}
-
-function showSection(sectionId) {
-    // Hide all sections with fade out
-    document.querySelectorAll('.section').forEach(section => {
-        if (section.classList.contains('active')) {
-            section.style.opacity = '0';
-            setTimeout(() => {
-                section.style.display = 'none';
-                section.classList.remove('active');
-            }, 200);
-        }
-    });
-    
-    // Show the selected section with fade in
-    const section = document.getElementById(sectionId);
-    if (section) {
-        section.style.display = 'block';
-        // Force reflow
-        void section.offsetWidth;
-        section.style.opacity = '1';
-        section.classList.add('active');
-        
-        // Update active nav link
-        document.querySelectorAll('.nav-link').forEach(link => {
-            if (link.getAttribute('data-section') === sectionId) {
-                link.classList.add('active');
-            } else {
-                link.classList.remove('active');
+            // Show auth form
+            function showAuth(type) {
+                showSection('auth');
+                if (type === 'login') {
+                    switchAuthTab('signin');
+                } else {
+                    switchAuthTab('signup');
+                }
             }
-        });
-        
-        // If showing dashboard, make sure overview tab is shown by default
-        if (sectionId === 'dashboard') {
-            showDashboardTab('overview');
-        }
-    }
-}
-
-function showDashboardTab(tabId) {
-    // If no tabId is provided, use the first available tab
-    if (!tabId) {
-        const firstTab = document.querySelector('.tab-button');
-        if (firstTab) {
-            tabId = firstTab.getAttribute('data-tab');
-        } else {
-            return; // No tabs available
-        }
-    }
     
-    // Hide all tab contents and remove active class from tab buttons
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.style.display = 'none';
-        tab.setAttribute('aria-hidden', 'true');
-    });
-    
-    document.querySelectorAll('.tab-button').forEach(button => {
-        button.classList.remove('active');
-        button.setAttribute('aria-selected', 'false');
-        button.setAttribute('tabindex', '-1');
-        button.disabled = false;
-    });
-    
-    // Show the selected tab content and mark button as active
-    const tabContent = document.getElementById(`${tabId}-tab`);
-    const tabButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
-    
-    if (!tabContent || !tabButton) {
-        console.error(`Tab content or button not found for tab: ${tabId}`);
-        return;
-    }
-    
-    // Disable the button during tab switch to prevent rapid clicks
-    tabButton.disabled = true;
-    
-    // Show loading state
-    const originalButtonText = tabButton.textContent;
-    tabButton.innerHTML = '<span class="loading-spinner"></span> Loading...';
-    
-    // Use a small timeout to allow the UI to update
-    setTimeout(() => {
-        // Show the tab content
-        tabContent.style.display = 'block';
-        tabContent.style.opacity = '1';
-        tabContent.setAttribute('aria-hidden', 'false');
-        
-        // Update button states
-        tabButton.classList.add('active');
-        tabButton.setAttribute('aria-selected', 'true');
-        tabButton.setAttribute('tabindex', '0');
-        tabButton.innerHTML = originalButtonText; // Restore original text
-        tabButton.disabled = false;
-        
-        // Focus the tab button but don't scroll the page
-        setTimeout(() => {
-            tabButton.focus({ preventScroll: true });
-        }, 0);
-        
-        // Update the URL hash without adding to browser history
-        if (history.pushState) {
-            const newUrl = `${window.location.pathname}#dashboard/${tabId}`;
-            window.history.pushState({ path: newUrl }, '', newUrl);
-        } else {
-            window.location.hash = `dashboard/${tabId}`;
-        }
-        
-        // Load tab-specific content
-        loadTabContent(tabId);
-        
-        // Dispatch a custom event that the tab has changed
-        const event = new CustomEvent('tabChanged', { detail: { tabId } });
-        document.dispatchEvent(event);
-        
-    }, 150); // Small delay for better perceived performance
-}
-
-// Load content specific to each tab
-function loadTabContent(tabId) {
-    switch (tabId) {
-        case 'scholarships':
-            loadScholarships();
-            break;
-        case 'profile':
-            if (currentUser) {
-                document.getElementById('profileName').value = currentUser.name || '';
-                document.getElementById('profileEmail').value = currentUser.email || '';
+            // Switch auth tabs
+            function switchAuthTab(tab) {
+                document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.auth-form-container').forEach(f => f.style.display = 'none');
+                
+                if (tab === 'signin') {
+                    document.querySelector('.auth-tab:first-child').classList.add('active');
+                    document.getElementById('signin-form').style.display = 'block';
+                } else {
+                    document.querySelector('.auth-tab:last-child').classList.add('active');
+                    document.getElementById('signup-form').style.display = 'block';
+                }
             }
-            break;
-        case 'applications':
-            // Load applications if needed
-            break;
-        case 'overview':
-        default:
-            // Default tab content is already loaded
-            break;
-    }
-}
-
-function toggleLogin() {
-    showSection('login');
-}
-
-function toggleSignup() {
-    showSection('signup');
-}
-
-// Scholarship Functions
-function loadScholarships() {
-    const scholarshipList = document.querySelector('.scholarship-list');
-    if (!scholarshipList) return;
-
-    scholarshipList.innerHTML = sampleScholarships.map(scholarship => `
-        <div class="card" style="margin-bottom: 1rem;">
-            <h3>${scholarship.title}</h3>
-            <p>Amount: $${scholarship.amount.toLocaleString()}</p>
-            <p>Deadline: ${new Date(scholarship.deadline).toLocaleDateString()}</p>
-            <p>${scholarship.description}</p>
-            <div style="margin-top: 1rem;">
-                <button class="cta-button" onclick="applyForScholarship(${scholarship.id})">Apply Now</button>
-            </div>
-        </div>
-    `).join('');
-}
-
-function applyForScholarship(scholarshipId) {
-    if (!isAuthenticated) {
-        showSection('signup');
-        showMessage('Please sign up or log in to apply for scholarships.', 'info');
-        return;
-    }
     
-    // In a real app, this would submit an application
-    showMessage('Application submitted successfully!', 'success');
-}
-
-// Utility Functions
-function showMessage(message, type = 'info') {
-    // Create message element if it doesn't exist
-    let messageEl = document.getElementById('message');
-    if (!messageEl) {
-        messageEl = document.createElement('div');
-        messageEl.id = 'message';
-        document.body.appendChild(messageEl);
-    }
+            // Handle sign in
+            async function handleSignIn(event) {
+                event.preventDefault();
+                const email = document.getElementById('signin-email').value;
+                const password = document.getElementById('signin-password').value;
+                
+                try {
+                    const response = await fetch('/api/users/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email, password })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        localStorage.setItem('token', data.token);
+                        localStorage.setItem('userData', JSON.stringify(data.user));
+                        currentUser = data.user;
+                        isAuthenticated = true;
+                        updateAuthUI(true);
+                        showSuccess('Successfully signed in!');
+                        
+                        // Check if profile is complete
+                        const savedProfile = JSON.parse(localStorage.getItem('scholarshipProfile') || '{}');
+                        if (Object.keys(savedProfile).length === 0) {
+                            showSection('scholarship-form');
+                        } else {
+                            showSection('dashboard');
+                            loadScholarships();
+                        }
+                    } else {
+                        alert(data.error || 'Failed to sign in');
+                    }
+                } catch (error) {
+                    console.error('Sign in error:', error);
+                    alert('Failed to sign in. Please try again.');
+                }
+            }
     
-    // Set message content and style
-    messageEl.textContent = message;
-    messageEl.className = `message message-${type}`;
-    messageEl.style.display = 'block';
+            // Handle sign up
+            async function handleSignUp(event) {
+                event.preventDefault();
+                const name = document.getElementById('signup-name').value;
+                const email = document.getElementById('signup-email').value;
+                const password = document.getElementById('signup-password').value;
+                
+                try {
+                    const response = await fetch('/api/users/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name, email, password })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        localStorage.setItem('token', data.token);
+                        localStorage.setItem('userData', JSON.stringify(data.user));
+                        currentUser = data.user;
+                        isAuthenticated = true;
+                        updateAuthUI(true);
+                        showSuccess('Account created successfully!');
+                        showSection('scholarship-form');
+                    } else {
+                        alert(data.error || 'Failed to create account');
+                    }
+                } catch (error) {
+                    console.error('Sign up error:', error);
+                    alert('Failed to create account. Please try again.');
+                }
+            }
     
-    // Auto-hide after 5 seconds
-    setTimeout(() => {
-        messageEl.style.display = 'none';
-    }, 5000);
-}
-
-// Add message styles to head
-const style = document.createElement('style');
-style.textContent = `
-    .message {
-        position: fixed;
-        top: 100px;
-        right: 20px;
-        padding: 15px 25px;
-        border-radius: 8px;
-        color: white;
-        font-weight: 600;
-        z-index: 1000;
-        animation: slideIn 0.3s ease-out;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
+            // Handle logout
+            function handleLogout() {
+                localStorage.removeItem('token');
+                localStorage.removeItem('userData');
+                currentUser = null;
+                isAuthenticated = false;
+                updateAuthUI(false);
+                showSuccess('Signed out successfully!');
+                showSection('hero');
+            }
     
-    .message-success {
-        background-color: #10B981;
-    }
+            // Switch dashboard tabs
+            function switchDashboardTab(tabName) {
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.dashboard-tab').forEach(tab => tab.style.display = 'none');
+                
+                event.target.classList.add('active');
+                document.getElementById(`${tabName}-tab`).style.display = 'block';
+                
+                if (tabName === 'applications') {
+                    loadApplications();
+                } else if (tabName === 'profile') {
+                    loadProfileSummary();
+                }
+            }
     
-    .message-error {
-        background-color: #EF4444;
-    }
+            // Load scholarships
+            async function loadScholarships() {
+                const container = document.getElementById('scholarshipsList');
+                
+                try {
+                    const response = await fetch('/api/scholarships', {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const scholarships = await response.json();
+                        displayScholarships(scholarships.length > 0 ? scholarships : sampleScholarships);
+                    } else {
+                        // Use sample data if API fails
+                        displayScholarships(sampleScholarships);
+                    }
+                } catch (error) {
+                    console.error('Error loading scholarships:', error);
+                    // Use sample data on error
+                    displayScholarships(sampleScholarships);
+                }
+            }
     
-    .message-info {
-        background-color: #3B82F6;
-    }
+            // Display scholarships
+            function displayScholarships(scholarships) {
+                const container = document.getElementById('scholarshipsList');
+                
+                if (scholarships.length === 0) {
+                    container.innerHTML = '<p>No scholarships available at the moment.</p>';
+                    return;
+                }
+                
+                container.innerHTML = scholarships.map(scholarship => `
+                    <div class="scholarship-card">
+                        <div class="scholarship-info">
+                            <h3>${scholarship.name || scholarship.title}</h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 0.5rem;">${scholarship.organization}</p>
+                            <p style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">${scholarship.description}</p>
+                            <div style="margin-top: 0.5rem;">
+                                ${scholarship.requirements.map(req => `<span style="display: inline-block; padding: 0.25rem 0.75rem; background: rgba(255, 255, 255, 0.1); border-radius: 20px; font-size: 0.85rem; margin-right: 0.5rem; margin-top: 0.25rem;">${req}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="scholarship-action">
+                            <div class="amount">${scholarship.amount.toLocaleString()}</div>
+                            <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem; margin-bottom: 0.5rem;">Match: ${scholarship.matchScore || 85}%</div>
+                            <button class="auto-apply-btn" onclick="autoApply('${scholarship._id}', this)">
+                                Auto-Apply
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
     
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-`;
-document.head.appendChild(style);
-    </script>
-</body>
-</html>
+            // Auto apply function
+            async function autoApply(scholarshipId, button) {
+                // Check if profile is complete
+                const savedProfile = JSON.parse(localStorage.getItem('scholarshipProfile') || '{}');
+                if (Object.keys(savedProfile).length === 0) {
+                    alert('Please complete your scholarship profile before applying.');
+                    showSection('scholarship-form');
+                    return;
+                }
+                
+                button.disabled = true;
+                button.innerHTML = '<span class="spinner"></span> Applying...';
+                
+                try {
+                    // Simulate application process with profile data
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    const response = await fetch('/api/applications', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ 
+                            scholarshipId,
+                            profileData: savedProfile
+                        })
+                    });
+                    
+                    if (response.ok || response.status === 404) {
+                        button.innerHTML = 'Applied';
+                        showSuccess('Application submitted successfully using your saved profile!');
+                        
+                        // Update local applications
+                        const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+                        applications.push({
+                            scholarshipId,
+                            status: 'pending',
+                            submittedAt: new Date().toISOString()
+                        });
+                        localStorage.setItem('applications', JSON.stringify(applications));
+                    } else {
+                        throw new Error('Failed to submit application');
+                    }
+                } catch (error) {
+                    console.error('Error applying:', error);
+                    button.disabled = false;
+                    button.innerHTML = 'Auto-Apply';
+                    alert('Failed to submit application. Please try again.');
+                }
+            }
+    
+            // Load applications
+            async function loadApplications() {
+                const container = document.getElementById('applicationsList');
+                
+                try {
+                    const response = await fetch('/api/applications', {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    
+                    let applications = [];
+                    if (response.ok) {
+                        applications = await response.json();
+                    } else {
+                        // Use local storage as fallback
+                        applications = JSON.parse(localStorage.getItem('applications') || '[]');
+                    }
+                    
+                    if (applications.length === 0) {
+                        container.innerHTML = '<p>No applications yet. Start applying to scholarships!</p>';
+                    } else {
+                        container.innerHTML = applications.map(app => `
+                            <div class="scholarship-card">
+                                <div>
+                                    <h4>Application #${app.scholarshipId}</h4>
+                                    <p>Status: <span style="color: ${app.status === 'pending' ? '#FCD34D' : '#4ADE80'};">${app.status.toUpperCase()}</span></p>
+                                    <p style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">Submitted: ${new Date(app.submittedAt).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                } catch (error) {
+                    console.error('Error loading applications:', error);
+                    container.innerHTML = '<p>Failed to load applications.</p>';
+                }
+            }
+    
+            // Load profile summary
+            function loadProfileSummary() {
+                const savedProfile = JSON.parse(localStorage.getItem('scholarshipProfile') || '{}');
+                const profileSummary = document.getElementById('profileSummary');
+                
+                if (Object.keys(savedProfile).length === 0) {
+                    profileSummary.innerHTML = `
+                        <p>You haven't completed your scholarship profile yet.</p>
+                        <button class="btn btn-primary" onclick="editScholarshipProfile()">Complete Profile</button>
+                    `;
+                    return;
+                }
+                
+                profileSummary.innerHTML = `
+                    <div style="display: grid; gap: 1.5rem;">
+                        <div>
+                            <h4 style="margin-bottom: 0.5rem;">Personal Information</h4>
+                            <p><strong>Name:</strong> ${savedProfile.firstName} ${savedProfile.lastName}</p>
+                            <p><strong>Date of Birth:</strong> ${new Date(savedProfile.dateOfBirth).toLocaleDateString()}</p>
+                            <p><strong>Phone:</strong> ${savedProfile.phone}</p>
+                            <p><strong>Address:</strong> ${savedProfile.address}, ${savedProfile.city}, ${savedProfile.state} ${savedProfile.zipCode}</p>
+                            <p><strong>Citizenship:</strong> ${savedProfile.citizenship}</p>
+                        </div>
+                        
+                        <div>
+                            <h4 style="margin-bottom: 0.5rem;">Academic Information</h4>
+                            <p><strong>School:</strong> ${savedProfile.school}</p>
+                            <p><strong>Grade Level:</strong> ${savedProfile.gradeLevel}</p>
+                            <p><strong>GPA:</strong> ${savedProfile.gpa}</p>
+                            <p><strong>Major:</strong> ${savedProfile.major}</p>
+                            ${savedProfile.satScore ? `<p><strong>SAT Score:</strong> ${savedProfile.satScore}</p>` : ''}
+                            ${savedProfile.actScore ? `<p><strong>ACT Score:</strong> ${savedProfile.actScore}</p>` : ''}
+                        </div>
+                        
+                        <div>
+                            <h4 style="margin-bottom: 0.5rem;">Activities & Awards</h4>
+                            <p><strong>Extracurricular Activities:</strong> ${savedProfile.activities.substring(0, 100)}...</p>
+                            <p><strong>Awards:</strong> ${savedProfile.awards.substring(0, 100)}...</p>
+                            <p><strong>Community Service:</strong> ${savedProfile.communityService.substring(0, 100)}...</p>
+                        </div>
+                        
+                        <div>
+                            <h4 style="margin-bottom: 0.5rem;">Essays</h4>
+                            <p>✓ Why You Deserve Scholarship</p>
+                            <p>✓ Educational & Career Goals</p>
+                            <p>✓ Challenge Overcome</p>
+                            <p>✓ Scholarship Impact</p>
+                        </div>
+                    </div>
+                `;
+            }
+    
+            // Edit scholarship profile
+            function editScholarshipProfile() {
+                currentFormStep = 1;
+                document.querySelectorAll('.progress-step').forEach(step => {
+                    step.classList.remove('active', 'completed');
+                });
+                document.querySelector('.progress-step[data-step="1"]').classList.add('active');
+                
+                showSection('scholarship-form');
+                loadProfileForEdit();
+                updateFormNavigation();
+            }
+    
+            // Show success message
+            function showSuccess(message) {
+                const successDiv = document.getElementById('successMessage');
+                successDiv.textContent = message;
+                successDiv.style.display = 'block';
+                
+                setTimeout(() => {
+                    successDiv.style.display = 'none';
+                }, 3000);
+            }
+    
+            // Initialize in-memory database (for demo purposes)
+            const inMemoryDB = {
+                scholarships: new Map(sampleScholarships.map(s => [s._id, s]))
+            };
+    
+            // Form navigation functions
+            function nextStep() {
+                if (validateStep(currentFormStep)) {
+                    document.querySelector(`.form-step[data-step="${currentFormStep}"]`).classList.remove('active');
+                    document.querySelector(`.progress-step[data-step="${currentFormStep}"]`).classList.add('completed');
+                    
+                    currentFormStep++;
+                    
+                    document.querySelector(`.form-step[data-step="${currentFormStep}"]`).classList.add('active');
+                    document.querySelector(`.progress-step[data-step="${currentFormStep}"]`).classList.add('active');
+                    
+                    updateFormNavigation();
+                }
+            }
+    
+            function previousStep() {
+                document.querySelector(`.form-step[data-step="${currentFormStep}"]`).classList.remove('active');
+                document.querySelector(`.progress-step[data-step="${currentFormStep}"]`).classList.remove('active');
+                
+                currentFormStep--;
+                
+                document.querySelector(`.form-step[data-step="${currentFormStep}"]`).classList.add('active');
+                document.querySelector(`.progress-step[data-step="${currentFormStep}"]`).classList.add('completed');
+                
+                updateFormNavigation();
+            }
+    
+            function updateFormNavigation() {
+                const prevBtn = document.getElementById('prevBtn');
+                const nextBtn = document.getElementById('nextBtn');
+                const submitBtn = document.getElementById('submitBtn');
+                
+                prevBtn.style.display = currentFormStep === 1 ? 'none' : 'block';
+                nextBtn.style.display = currentFormStep === totalSteps ? 'none' : 'block';
+                submitBtn.style.display = currentFormStep === totalSteps ? 'block' : 'none';
+            }
+    
+            function validateStep(step) {
+                const currentStepElement = document.querySelector(`.form-step[data-step="${step}"]`);
+                const requiredFields = currentStepElement.querySelectorAll('[required]');
+                
+                for (let field of requiredFields) {
+                    if (!field.value.trim()) {
+                        field.focus();
+                        alert('Please fill in all required fields');
+                        return false;
+                    }
+                }
+                return true;
+            }
+    
+            // Handle profile form submission
+            async function handleProfileSubmit(event) {
+                event.preventDefault();
+                
+                if (!validateStep(currentFormStep)) {
+                    return;
+                }
+                
+                // Collect all form data
+                const formData = {
+                    // Personal Information
+                    firstName: document.getElementById('firstName').value,
+                    lastName: document.getElementById('lastName').value,
+                    dateOfBirth: document.getElementById('dateOfBirth').value,
+                    gender: document.getElementById('gender').value,
+                    citizenship: document.getElementById('citizenship').value,
+                    ethnicity: Array.from(document.querySelectorAll('input[name="ethnicity"]:checked')).map(cb => cb.value),
+                    phone: document.getElementById('phone').value,
+                    address: document.getElementById('address').value,
+                    city: document.getElementById('city').value,
+                    state: document.getElementById('state').value,
+                    zipCode: document.getElementById('zipCode').value,
+                    
+                    // Academic Information
+                    school: document.getElementById('school').value,
+                    schoolType: document.getElementById('schoolType').value,
+                    gradeLevel: document.getElementById('gradeLevel').value,
+                    gpa: document.getElementById('gpa').value,
+                    graduationYear: document.getElementById('graduationYear').value,
+                    major: document.getElementById('major').value,
+                    minor: document.getElementById('minor').value,
+                    satScore: document.getElementById('satScore').value,
+                    actScore: document.getElementById('actScore').value,
+                    classRank: document.getElementById('classRank').value,
+                    
+                    // Extracurricular & Experience
+                    activities: document.getElementById('activities').value,
+                    leadership: document.getElementById('leadership').value,
+                    workExperience: document.getElementById('workExperience').value,
+                    awards: document.getElementById('awards').value,
+                    communityService: document.getElementById('communityService').value,
+                    specialCircumstances: document.getElementById('specialCircumstances').value,
+                    
+                    // Essays
+                    whyDeserving: document.getElementById('whyDeserving').value,
+                    careerGoals: document.getElementById('careerGoals').value,
+                    challengeOvercome: document.getElementById('challengeOvercome').value,
+                    scholarshipImpact: document.getElementById('scholarshipImpact').value
+                };
+                
+                try {
+                    const response = await fetch('/api/profile', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    if (response.ok) {
+                        // Save to localStorage for autofill
+                        localStorage.setItem('scholarshipProfile', JSON.stringify(formData));
+                        showSuccess('Profile completed successfully!');
+                        showSection('dashboard');
+                        loadScholarships();
+                    } else {
+                        alert('Failed to save profile. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error saving profile:', error);
+                    // Save to localStorage as fallback
+                    localStorage.setItem('scholarshipProfile', JSON.stringify(formData));
+                    showSuccess('Profile saved locally!');
+                    showSection('dashboard');
+                    loadScholarships();
+                }
+            }
+    
+            // Word count function for textareas
+            function updateWordCount(textarea) {
+                const words = textarea.value.trim().split(/\s+/).filter(word => word.length > 0);
+                const wordCount = words.length;
+                const maxWords = parseInt(textarea.parentElement.querySelector('.word-count').textContent.split('/')[1]);
+                const countElement = textarea.parentElement.querySelector('.word-count');
+                
+                countElement.textContent = `${wordCount}/${maxWords} words`;
+                
+                if (wordCount > maxWords) {
+                    countElement.style.color = '#EF4444';
+                } else {
+                    countElement.style.color = 'rgba(255, 255, 255, 0.6)';
+                }
+            }
+    
+            // Add word count listeners
+            document.addEventListener('DOMContentLoaded', function() {
+                const essayFields = ['whyDeserving', 'careerGoals', 'challengeOvercome', 'scholarshipImpact'];
+                essayFields.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (field) {
+                        field.addEventListener('input', () => updateWordCount(field));
+                    }
+                });
+            });
+    
+            // Progress step click handler
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('progress-step')) {
+                    const targetStep = parseInt(e.target.getAttribute('data-step'));
+                    if (targetStep < currentFormStep) {
+                        // Allow going back to previous steps
+                        document.querySelector(`.form-step[data-step="${currentFormStep}"]`).classList.remove('active');
+                        currentFormStep = targetStep;
+                        document.querySelector(`.form-step[data-step="${currentFormStep}"]`).classList.add('active');
+                        updateFormNavigation();
+                    }
+                }
+            });
+    
+            // Load profile data in edit mode
+            function loadProfileForEdit() {
+                const savedProfile = JSON.parse(localStorage.getItem('scholarshipProfile') || '{}');
+                
+                // Personal Information
+                if (savedProfile.firstName) document.getElementById('firstName').value = savedProfile.firstName;
+                if (savedProfile.lastName) document.getElementById('lastName').value = savedProfile.lastName;
+                if (savedProfile.dateOfBirth) document.getElementById('dateOfBirth').value = savedProfile.dateOfBirth;
+                if (savedProfile.gender) document.getElementById('gender').value = savedProfile.gender;
+                if (savedProfile.citizenship) document.getElementById('citizenship').value = savedProfile.citizenship;
+                if (savedProfile.phone) document.getElementById('phone').value = savedProfile.phone;
+                if (savedProfile.address) document.getElementById('address').value = savedProfile.address;
+                if (savedProfile.city) document.getElementById('city').value = savedProfile.city;
+                if (savedProfile.state) document.getElementById('state').value = savedProfile.state;
+                if (savedProfile.zipCode) document.getElementById('zipCode').value = savedProfile.zipCode;
+                
+                // Ethnicity checkboxes
+                if (savedProfile.ethnicity && Array.isArray(savedProfile.ethnicity)) {
+                    savedProfile.ethnicity.forEach(value => {
+                        const checkbox = document.querySelector(`input[name="ethnicity"][value="${value}"]`);
+                        if (checkbox) checkbox.checked = true;
+                    });
+                }
+                
+                // Academic Information
+                if (savedProfile.school) document.getElementById('school').value = savedProfile.school;
+                if (savedProfile.schoolType) document.getElementById('schoolType').value = savedProfile.schoolType;
+                if (savedProfile.gradeLevel) document.getElementById('gradeLevel').value = savedProfile.gradeLevel;
+                if (savedProfile.gpa) document.getElementById('gpa').value = savedProfile.gpa;
+                if (savedProfile.graduationYear) document.getElementById('graduationYear').value = savedProfile.graduationYear;
+                if (savedProfile.major) document.getElementById('major').value = savedProfile.major;
+                if (savedProfile.minor) document.getElementById('minor').value = savedProfile.minor;
+                if (savedProfile.satScore) document.getElementById('satScore').value = savedProfile.satScore;
+                if (savedProfile.actScore) document.getElementById('actScore').value = savedProfile.actScore;
+                if (savedProfile.classRank) document.getElementById('classRank').value = savedProfile.classRank;
+                
+                // Extracurricular & Experience
+                if (savedProfile.activities) document.getElementById('activities').value = savedProfile.activities;
+                if (savedProfile.leadership) document.getElementById('leadership').value = savedProfile.leadership;
+                if (savedProfile.workExperience) document.getElementById('workExperience').value = savedProfile.workExperience;
+                if (savedProfile.awards) document.getElementById('awards').value = savedProfile.awards;
+                if (savedProfile.communityService) document.getElementById('communityService').value = savedProfile.communityService;
+                if (savedProfile.specialCircumstances) document.getElementById('specialCircumstances').value = savedProfile.specialCircumstances;
+                
+                // Essays
+                if (savedProfile.whyDeserving) {
+                    document.getElementById('whyDeserving').value = savedProfile.whyDeserving;
+                    updateWordCount(document.getElementById('whyDeserving'));
+                }
+                if (savedProfile.careerGoals) {
+                    document.getElementById('careerGoals').value = savedProfile.careerGoals;
+                    updateWordCount(document.getElementById('careerGoals'));
+                }
+                if (savedProfile.challengeOvercome) {
+                    document.getElementById('challengeOvercome').value = savedProfile.challengeOvercome;
+                    updateWordCount(document.getElementById('challengeOvercome'));
+                }
+                if (savedProfile.scholarshipImpact) {
+                    document.getElementById('scholarshipImpact').value = savedProfile.scholarshipImpact;
+                    updateWordCount(document.getElementById('scholarshipImpact'));
+                }
+            }
+        </script>
+    </body>
+    </html>
